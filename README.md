@@ -34,7 +34,7 @@ but, "not multi \n line \n string" is supported. // check \\ n
 
 And, Following is supported Data File Example.
 
-# line comment
+#line comment
 
 EU4Game
 
