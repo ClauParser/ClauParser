@@ -902,7 +902,7 @@ namespace wiz {
 			return *this;
 		}
 	private:
-		void Reset(const UserType& ut) { /// UT ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+		void Reset(const UserType& ut) { 
 										 //	userTypeList_sortFlagA = ut.userTypeList_sortFlagA;
 										 //userTypeList_sortFlagB = ut.userTypeList_sortFlagB;
 
@@ -911,10 +911,10 @@ namespace wiz {
 			//parent = ut.parent;
 			commentList = ut.commentList;
 
-			sortedItemList = ut.sortedItemList;
+			//sortedItemList = ut.sortedItemList;
 			sortedUserTypeList = ut.sortedUserTypeList;
 
-			useSortedItemList = ut.useSortedItemList;
+			useSortedItemList = false; // ut.useSortedItemList;
 			useSortedUserTypeList = ut.useSortedUserTypeList;
 
 			noRemove = ut.noRemove;
@@ -942,12 +942,12 @@ namespace wiz {
 			itemList = std::move(ut.itemList);
 			commentList = std::move(ut.commentList);
 
-			sortedItemList = std::move(ut.sortedItemList);
+			//sortedItemList = std::move(ut.sortedItemList);
 			sortedUserTypeList = std::move(ut.sortedUserTypeList);
 
 			std::swap(this->noRemove, ut.noRemove);
 
-			useSortedItemList = ut.useSortedItemList;
+			useSortedItemList = false; // ut.useSortedItemList;
 			useSortedUserTypeList = ut.useSortedUserTypeList;
 
 			userTypeList.reserve(ut.userTypeList.size());
