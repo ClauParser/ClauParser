@@ -843,7 +843,7 @@ namespace wiz {
 		UserType* GetParent() { return parent; }
 		const UserType* GetParent()const { return parent; }
 
-		void LinkUserType(UserType* ut) // danger fucntion?
+		void LinkUserType(UserType* ut) // friend?
 		{
 			userTypeList.push_back(ut);
 			ilist.push_back(2);
