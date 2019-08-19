@@ -1985,7 +1985,6 @@ namespace wiz {
 			}
 		}
 
-	public:
 		static long long GetIdx(long long x) {
 			return (x >> 32) & 0x00000000FFFFFFFF;
 		}
