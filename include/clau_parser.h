@@ -14,7 +14,6 @@
 #include <algorithm>
 
 #include <thread>
-#include <execution>
 
 namespace wiz {
 	template <typename T>
