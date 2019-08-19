@@ -2,6 +2,7 @@
 #ifndef CLAU_PARSER_H
 #define CLAU_PARSER_H
 
+#include <iostream>
 #include <vector>
 #include <list>
 #include <set>
@@ -434,119 +435,121 @@ namespace wiz {
 		}
 	};
 
-	static std::pair<bool, int> Scan(std::ifstream& inFile, const int num, bool* isFirst, const wiz::LoadDataOption& option, int thr_num,
-		char*& _buffer, long long* _buffer_len, long long*& _token_arr, long long* _token_arr_len)
-	{
-		if (inFile.eof()) {
-			return { false, 0 };
-		}
-
-		std::string temp;
-		char* buffer = nullptr;
-		std::vector<long long> start(thr_num + 1, 0);
-		std::vector<long long> last(thr_num + 1, 0);
-		std::vector<long long> token_arr_len(thr_num + 1, 0);
-		long long file_length;
-
-		if (thr_num > 0) {
-			inFile.seekg(0, inFile.end);
-			unsigned long long length = inFile.tellg();
-			inFile.seekg(0, inFile.beg);
-
-			file_length = length;
-			buffer = new char[file_length + 1]; // 
-
-			// read data as a block:
-			inFile.read(buffer, file_length);
-
-			buffer[file_length] = '\0';
-
-			start[0] = 0;
-
-
-			for (int i = 1; i < thr_num; ++i) {
-				start[i] = file_length / thr_num * i;
-				for (int x = start[i]; x <= file_length; ++x) {
-					if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
-						start[i] = x;
-						break;
-					}
-				}
-			}
-			for (int i = 0; i < thr_num - 1; ++i) {
-				last[i] = start[i + 1] - 1;
-				for (int x = last[i]; x <= file_length; ++x) {
-					if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
-						last[i] = x;
-						break;
-					}
-				}
-			}
-			last[thr_num - 1] = file_length;
-		}
-		else {
-			inFile.seekg(0, inFile.end);
-			unsigned long long length = inFile.tellg();
-			inFile.seekg(0, inFile.beg);
-
-			file_length = length;
-			buffer = new char[file_length + 1]; // 
-
-			// read data as a block:
-			inFile.read(buffer, file_length);
-			buffer[file_length] = '\0';
-
-			start[0] = 0;
-			last[0] = file_length;
-		}
-
-		long long* token_arr = nullptr;
-		
-		if (thr_num > 0) {
-			std::vector<std::thread> thr(thr_num);
-
-			token_arr = new long long[file_length];
-			
-			std::vector<long long> counter(thr_num, 0);
-			for (int i = 0; i < thr_num; ++i) {
-				thr[i] = std::thread(Scanner(buffer + start[i], buffer + last[i], &option,
-					token_arr + start[i], start[i], &counter[i]));
-			}
-
-			for (int i = 0; i < thr_num; ++i) {
-				thr[i].join();
-			}
-
-			long long sum = 0;
-			
-			for (int i = 1; i < counter.size(); ++i) {
-				sum += counter[i - 1];
-
-				memmove(token_arr + sum, token_arr + start[i], counter[i] * sizeof(long long) / sizeof(char));
-			}
-
-			*_token_arr_len = sum + counter.back();
-		}
-		else {
-			token_arr = new long long[file_length];
-
-			long long len;
-			Scanner scanner(buffer + start[0], buffer + last[0], &option, token_arr, start[0], &len);
-
-			scanner();
-
-			*_token_arr_len = len;
-		}
-
-		_buffer = buffer;
-		_token_arr = token_arr;
-		*_buffer_len = file_length;
-
-		return{ true, 1 };
-	}
-
+	
 	class InFileReserver
 	{
+	private:
+		static std::pair<bool, int> Scan(std::ifstream& inFile, const int num, bool* isFirst, const wiz::LoadDataOption& option, int thr_num,
+			char*& _buffer, long long* _buffer_len, long long*& _token_arr, long long* _token_arr_len)
+		{
+			if (inFile.eof()) {
+				return { false, 0 };
+			}
+
+			std::string temp;
+			char* buffer = nullptr;
+			std::vector<long long> start(thr_num + 1, 0);
+			std::vector<long long> last(thr_num + 1, 0);
+			std::vector<long long> token_arr_len(thr_num + 1, 0);
+			long long file_length;
+
+			if (thr_num > 0) {
+				inFile.seekg(0, inFile.end);
+				unsigned long long length = inFile.tellg();
+				inFile.seekg(0, inFile.beg);
+
+				file_length = length;
+				buffer = new char[file_length + 1]; // 
+
+				// read data as a block:
+				inFile.read(buffer, file_length);
+
+				buffer[file_length] = '\0';
+
+				start[0] = 0;
+
+
+				for (int i = 1; i < thr_num; ++i) {
+					start[i] = file_length / thr_num * i;
+					for (int x = start[i]; x <= file_length; ++x) {
+						if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
+							start[i] = x;
+							break;
+						}
+					}
+				}
+				for (int i = 0; i < thr_num - 1; ++i) {
+					last[i] = start[i + 1] - 1;
+					for (int x = last[i]; x <= file_length; ++x) {
+						if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
+							last[i] = x;
+							break;
+						}
+					}
+				}
+				last[thr_num - 1] = file_length;
+			}
+			else {
+				inFile.seekg(0, inFile.end);
+				unsigned long long length = inFile.tellg();
+				inFile.seekg(0, inFile.beg);
+
+				file_length = length;
+				buffer = new char[file_length + 1]; // 
+
+				// read data as a block:
+				inFile.read(buffer, file_length);
+				buffer[file_length] = '\0';
+
+				start[0] = 0;
+				last[0] = file_length;
+			}
+
+			long long* token_arr = nullptr;
+
+			if (thr_num > 0) {
+				std::vector<std::thread> thr(thr_num);
+
+				token_arr = new long long[file_length];
+
+				std::vector<long long> counter(thr_num, 0);
+				for (int i = 0; i < thr_num; ++i) {
+					thr[i] = std::thread(Scanner(buffer + start[i], buffer + last[i], &option,
+						token_arr + start[i], start[i], &counter[i]));
+				}
+
+				for (int i = 0; i < thr_num; ++i) {
+					thr[i].join();
+				}
+
+				long long sum = 0;
+
+				for (int i = 1; i < counter.size(); ++i) {
+					sum += counter[i - 1];
+
+					memmove(token_arr + sum, token_arr + start[i], counter[i] * sizeof(long long) / sizeof(char));
+				}
+
+				*_token_arr_len = sum + counter.back();
+			}
+			else {
+				token_arr = new long long[file_length];
+
+				long long len;
+				Scanner scanner(buffer + start[0], buffer + last[0], &option, token_arr, start[0], &len);
+
+				scanner();
+
+				*_token_arr_len = len;
+			}
+
+			_buffer = buffer;
+			_token_arr = token_arr;
+			*_buffer_len = file_length;
+
+			return{ true, 1 };
+		}
+
 	private:
 		std::ifstream* pInFile;
 		bool isFirst;
