@@ -2145,10 +2145,7 @@ namespace wiz {
 				{
 					// Left 1
 					if (len == 1 && (-1 != Equal(1, GetType(token_arr[i])) || -1 != Equal(1, GetType(token_arr[i])))) {
-						//i += 1;
-
 						if (!varVec.empty()) {
-
 							nestedUT[braceNum]->AddItem((varVec), (valVec), varVec.size());
 
 							varVec.clear();
@@ -2173,7 +2170,6 @@ namespace wiz {
 						///
 
 						state = 0;
-
 					}
 					// Right 2
 					else if (len == 1 && (-1 != Equal(2, GetType(token_arr[i])) || -1 != Equal(2, GetType(token_arr[i])))) {
@@ -2185,11 +2181,9 @@ namespace wiz {
 								nestedUT[braceNum]->AddItem(varVec, valVec, varVec.size());
 							}
 
-
 							varVec.clear();
 							valVec.clear();
 						}
-
 
 						if (braceNum == 0) {
 							UserType ut;
@@ -2263,7 +2257,6 @@ namespace wiz {
 								val = "";
 
 								state = 0;
-
 							}
 						}
 					}
@@ -2273,12 +2266,10 @@ namespace wiz {
 				{
 					// LEFT 1
 					if (len == 1 && (-1 != Equal(1, GetType(token_arr[i])) || -1 != Equal(1, GetType(token_arr[i])))) {
-
 						nestedUT[braceNum]->AddItem((varVec), (valVec), varVec.size());
 
 						varVec.clear();
 						valVec.clear();
-
 
 						///
 						{
@@ -2302,8 +2293,6 @@ namespace wiz {
 					else {
 						if (x <= token_arr + token_arr_len - 1) {
 							val = std::string(buffer + GetIdx(token_arr[i]), len);
-
-							//i += 1;
 
 							varVec.push_back(check_syntax_error1(var, option));
 							valVec.push_back(check_syntax_error1(val, option));
@@ -2342,7 +2331,7 @@ namespace wiz {
 			return true;
 		}
 
-		static long long FindDividePlace(const char* buffer, const long long* token_arr, long long start, long long last, const wiz::LoadDataOption& option)
+		static long long FindDivisionPlace(const char* buffer, const long long* token_arr, long long start, long long last, const wiz::LoadDataOption& option)
 		{
 			for (long long a = last; a >= start; --a) {
 				long long len = GetLength(token_arr[a]);
@@ -2410,7 +2399,7 @@ namespace wiz {
 					pivot.reserve(pivot_num);
 
 					for (int i = 0; i < pivot_num; ++i) {
-						pivot.push_back(FindDividePlace(buffer, token_arr, (num / (pivot_num + 1)) * (i), (num / (pivot_num + 1)) * (i + 1) - 1, option));
+						pivot.push_back(FindDivisionPlace(buffer, token_arr, (num / (pivot_num + 1)) * (i), (num / (pivot_num + 1)) * (i + 1) - 1, option));
 					}
 
 					for (int i = 0; i < pivot.size(); ++i) {
