@@ -880,7 +880,7 @@ namespace wiz {
 		UserType(const UserType& ut) : Type(ut.GetName()) {
 			Reset(ut);  // Initial
 		}
-		UserType(UserType&& ut) : Type(move(ut.GetName())) {
+		UserType(UserType&& ut) : Type(std::move(ut.GetName())) {
 			Reset2(std::move(ut));
 		}
 		virtual ~UserType() {
@@ -899,19 +899,15 @@ namespace wiz {
 		UserType& operator=(UserType&& ut) {
 			if (this == &ut) { return *this; }
 
-			Type::operator=(std::move(ut));
+			Type::operator=(ut);
 			RemoveUserTypeList();
 			Reset2(std::move(ut));
 			return *this;
 		}
 	private:
 		void Reset(const UserType& ut) { 
-										 //	userTypeList_sortFlagA = ut.userTypeList_sortFlagA;
-										 //userTypeList_sortFlagB = ut.userTypeList_sortFlagB;
-
 			ilist = ut.ilist;
 			itemList = ut.itemList;
-			//parent = ut.parent;
 			commentList = ut.commentList;
 
 			//sortedItemList = ut.sortedItemList;
@@ -936,11 +932,6 @@ namespace wiz {
 			}
 		}
 		void Reset2(UserType&& ut) {
-			//std::swap( userTypeList_sortFlagA, ut.userTypeList_sortFlagA );
-			//std::swap( userTypeList_sortFlagB, ut.userTypeList_sortFlagB );
-
-			//no use - //parent = ut.parent;
-			//no use - //ut.parent = nullptr; /// chk..
 			ilist = std::move(ut.ilist);
 			itemList = std::move(ut.itemList);
 			commentList = std::move(ut.commentList);
@@ -985,7 +976,6 @@ namespace wiz {
 
 			commentList.clear();
 		}
-		// static ??
 	public:
 		int GetIlistIndex(const int index, const int type)
 		{
@@ -2352,7 +2342,7 @@ namespace wiz {
 			return true;
 		}
 
-		static long long FindRight(const char* buffer, const long long* token_arr, long long start, long long last, const wiz::LoadDataOption& option)
+		static long long FindDividePlace(const char* buffer, const long long* token_arr, long long start, long long last, const wiz::LoadDataOption& option)
 		{
 			for (long long a = last; a >= start; --a) {
 				long long len = GetLength(token_arr[a]);
@@ -2420,7 +2410,7 @@ namespace wiz {
 					pivot.reserve(pivot_num);
 
 					for (int i = 0; i < pivot_num; ++i) {
-						pivot.push_back(FindRight(buffer, token_arr, (num / (pivot_num + 1)) * (i), (num / (pivot_num + 1)) * (i + 1) - 1, option));
+						pivot.push_back(FindDividePlace(buffer, token_arr, (num / (pivot_num + 1)) * (i), (num / (pivot_num + 1)) * (i + 1) - 1, option));
 					}
 
 					for (int i = 0; i < pivot.size(); ++i) {
