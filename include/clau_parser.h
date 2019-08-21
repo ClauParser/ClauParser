@@ -2198,8 +2198,8 @@ namespace wiz {
 				nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
 
 				for (long long x = 0; x < varVec.size(); ++x) {
-					bool chk = check_syntax_error1(varVec[x], option);
-					bool chk2 = check_syntax_error1(valVec[x], option);
+					long long chk = check_syntax_error1(varVec[x], option);
+					long long chk2 = check_syntax_error1(valVec[x], option);
 
 					nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
 						std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
