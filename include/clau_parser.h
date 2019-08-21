@@ -37,7 +37,7 @@ namespace wiz {
 		std::string tempString;
 		int k;
 		bool isMinus = (i < 0);
-		temp[INT_SIZE + 1] = '\0'; ///ë¬¸ìžœì‹œ..
+		temp[INT_SIZE + 1] = '\0'; //
 
 		for (k = INT_SIZE; k >= 1; k--) {
 			T val = pos_1<T>(i, base); /// 0 ~ base-1
@@ -47,7 +47,7 @@ namespace wiz {
 
 			i /= base;
 
-			if (0 == i) { // «ìž.
+			if (0 == i) { // 
 				k--;
 				break;
 			}
@@ -72,7 +72,7 @@ namespace wiz {
 		char LineComment = '#';	// # 
 		char Left = '{', Right = '}';	// { }
 		char Assignment = '=';	// = 
-		char Removal = ',';		// ',' 
+		char Removal = ' ';		// ',' 
 	};
 
 	inline bool isWhitespace(const char ch)
@@ -864,7 +864,7 @@ namespace wiz {
 		bool noRemove = false;
 	public:
 		explicit UserType(std::string&& name, bool noRemove = false) : Type(move(name)), parent(nullptr), noRemove(noRemove) { }
-		explicit UserType(const std::string& name = "", bool noRemove = false) : Type(name), parent(nullptr), noRemove(noRemove) { } //, userTypeList_sortFlagA(true), userTypeList_sortFlagB(true) { }
+		explicit UserType(const std::string& name = "", bool noRemove = false) : Type(name), parent(nullptr), noRemove(noRemove) { } 
 		UserType(const UserType& ut) : Type(ut.GetName()) {
 			Reset(ut);  // Initial
 		}
@@ -1358,35 +1358,6 @@ namespace wiz {
 
 			useSortedItemList = false;
 		}
-		void AddItem(std::vector<std::string>&& name, std::vector<std::string>&& item, const int n) {
-			// name.size() == item.size()
-			int start_idx = itemList.size();
-			itemList.reserve(itemList.size() + n);
-			ilist.reserve(ilist.size() + n);
-			int end_idx = itemList.size() + n;
-
-			{
-				for (int i = start_idx; i < end_idx; ++i) {
-					itemList.push_back(ItemType<std::string>(std::move(name[i - start_idx]), std::move(item[i - start_idx])));
-					ilist.push_back(1);
-				}
-			}
-		}
-		void AddItem(const std::vector<std::string>& name, const std::vector<std::string>& item, const int n) {
-			// name.size() == item.size()
-			int start_idx = itemList.size();
-			itemList.reserve(itemList.size() + n);
-			ilist.reserve(ilist.size() + n);
-			int end_idx = itemList.size() + n;
-
-			{
-				for (int i = start_idx; i < end_idx; ++i) {
-					itemList.push_back(ItemType<std::string>((name[i - start_idx]), (item[i - start_idx])));
-					ilist.push_back(1);
-				}
-			}
-		}
-
 		void AddUserTypeItem(UserType&& item) {
 			UserType* temp = new UserType(std::move(item));
 			temp->parent = this;
@@ -1626,20 +1597,12 @@ namespace wiz {
 			ref = userTypeList[idx];
 			return true;
 		}
-		bool GetLastUserTypeItemRef(const std::string& name, UserType*& ref) {
-			int idx = -1;
-
-			for (int i = userTypeList.size() - 1; i >= 0; --i)
-			{
-				if (name == userTypeList[i]->GetName()) {
-					idx = i;
-					break;
-				}
+		bool GetLastUserTypeItemRef(UserType*& ref) {
+			if (userTypeList.empty() == false) {
+				ref = userTypeList.back();
+				return true;
 			}
-			if (idx > -1) {
-				ref = userTypeList[idx];
-			}
-			return idx > -1;
+			return false;
 		}
 	private:
 		/// save1 - like EU4 savefiles.
@@ -1913,9 +1876,12 @@ namespace wiz {
 	class LoadData
 	{
 	private:
-		static std::string& check_syntax_error1(std::string& str, const wiz::LoadDataOption& opt) {
-			if (1 == str.size() && (opt.Left == str[0] || opt.Right == str[0] ||
-				opt.Assignment == str[0])) {
+		static long long check_syntax_error1(long long str, const wiz::LoadDataOption& opt) {
+			long long len = GetLength(str);
+			long long type = GetType(str);
+
+			if (1 == len && type == 1 || type == 2 ||
+				type == 3) {
 				throw "check syntax error 1 : " + str;
 			}
 			return str;
@@ -1998,8 +1964,8 @@ namespace wiz {
 		static bool __LoadData(const char* buffer, const long long* token_arr, long long token_arr_len, UserType* _global, const wiz::LoadDataOption* _option,
 			int start_state, int last_state, UserType** next) // first, strVec.empty() must be true!!
 		{
-			std::vector<std::string> varVec;
-			std::vector<std::string> valVec;
+			std::vector<long long> varVec;
+			std::vector<long long> valVec;
 
 
 			if (token_arr_len <= 0) {
@@ -2012,7 +1978,7 @@ namespace wiz {
 			int state = start_state;
 			int braceNum = 0;
 			std::vector< UserType* > nestedUT(1);
-			std::string var, val;
+			long long var = 0, val = 0;
 
 			nestedUT.reserve(10);
 			nestedUT[0] = &global;
@@ -2040,7 +2006,13 @@ namespace wiz {
 					// Left 1
 					if (len == 1 && (-1 != Equal(1, GetType(token_arr[i])) || -1 != Equal(1, GetType(token_arr[i])))) {
 						if (!varVec.empty()) {
-							nestedUT[braceNum]->AddItem((varVec), (valVec), varVec.size());
+							nestedUT[braceNum]->ReserveIList(nestedUT[braceNum]->GetIListSize() + varVec.size());
+							nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
+
+							for (long long x = 0; x < varVec.size(); ++x) {
+								nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
+									std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
+							}
 
 							varVec.clear();
 							valVec.clear();
@@ -2050,7 +2022,7 @@ namespace wiz {
 
 						nestedUT[braceNum]->AddUserTypeItem(temp);
 						UserType* pTemp = nullptr;
-						nestedUT[braceNum]->GetLastUserTypeItemRef("", pTemp);
+						nestedUT[braceNum]->GetLastUserTypeItemRef(pTemp);
 
 						braceNum++;
 
@@ -2072,7 +2044,13 @@ namespace wiz {
 						if (!varVec.empty()) {
 
 							{
-								nestedUT[braceNum]->AddItem(varVec, valVec, varVec.size());
+								nestedUT[braceNum]->ReserveIList(nestedUT[braceNum]->GetIListSize() + varVec.size());
+								nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
+
+								for (long long x = 0; x < varVec.size(); ++x) {
+									nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
+										std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
+								}
 							}
 
 							varVec.clear();
@@ -2083,7 +2061,7 @@ namespace wiz {
 							UserType ut;
 							ut.AddUserTypeItem(UserType("#")); // json -> "var_name" = val  // clautext, # is line comment delimiter.
 							UserType* pTemp = nullptr;
-							ut.GetLastUserTypeItemRef("#", pTemp);
+							ut.GetLastUserTypeItemRef(pTemp);
 							int utCount = 0;
 							int itCount = 0;
 							auto max = nestedUT[braceNum]->GetIListSize();
@@ -2116,7 +2094,7 @@ namespace wiz {
 							long long _len = GetLength(token_arr[i + 1]);
 							// EQ 3
 							if (_len == 1 && -1 != Equal(3, GetType(token_arr[i + 1]))) { 
-								var = std::string(buffer + GetIdx(token_arr[i]), len);
+								var = token_arr[i];
 
 								state = 1;
 
@@ -2128,12 +2106,12 @@ namespace wiz {
 								// var1
 								if (x <= token_arr + token_arr_len - 1) {
 
-									val = std::string(buffer + GetIdx(token_arr[i]), len);
+									val = token_arr[i];
 
 									varVec.push_back(check_syntax_error1(var, option));
 									valVec.push_back(check_syntax_error1(val, option));
 
-									val = "";
+									val = 0;
 
 									state = 0;
 
@@ -2145,10 +2123,10 @@ namespace wiz {
 							// var1
 							if (x <= token_arr + token_arr_len - 1)
 							{
-								val = std::string(buffer + GetIdx(token_arr[i]), len);
+								val = token_arr[i];
 								varVec.push_back(check_syntax_error1(var, option));
 								valVec.push_back(check_syntax_error1(val, option));
-								val = "";
+								val = 0;
 
 								state = 0;
 							}
@@ -2160,17 +2138,24 @@ namespace wiz {
 				{
 					// LEFT 1
 					if (len == 1 && (-1 != Equal(1, GetType(token_arr[i])) || -1 != Equal(1, GetType(token_arr[i])))) {
-						nestedUT[braceNum]->AddItem((varVec), (valVec), varVec.size());
+						nestedUT[braceNum]->ReserveIList(nestedUT[braceNum]->GetIListSize() + varVec.size());
+						nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
+
+						for (long long x = 0; x < varVec.size(); ++x) {
+							nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
+								std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
+						}
+
 
 						varVec.clear();
 						valVec.clear();
 
 						///
 						{
-							nestedUT[braceNum]->AddUserTypeItem(UserType(var));
+							nestedUT[braceNum]->AddUserTypeItem(UserType(std::string(buffer + GetIdx(var), GetLength(var))));
 							UserType* pTemp = nullptr;
-							nestedUT[braceNum]->GetLastUserTypeItemRef(var, pTemp);
-							var = "";
+							nestedUT[braceNum]->GetLastUserTypeItemRef(pTemp);
+							var = 0;
 							braceNum++;
 
 							/// new nestedUT
@@ -2186,11 +2171,11 @@ namespace wiz {
 					}
 					else {
 						if (x <= token_arr + token_arr_len - 1) {
-							val = std::string(buffer + GetIdx(token_arr[i]), len);
+							val = token_arr[i];
 
 							varVec.push_back(check_syntax_error1(var, option));
 							valVec.push_back(check_syntax_error1(val, option));
-							var = ""; val = "";
+							var = 0; val = 0;
 
 							state = 0;
 						}
@@ -2209,7 +2194,14 @@ namespace wiz {
 			}
 
 			if (varVec.empty() == false) {
-				nestedUT[braceNum]->AddItem(varVec, valVec, varVec.size());
+				nestedUT[braceNum]->ReserveIList(nestedUT[braceNum]->GetIListSize() + varVec.size());
+				nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
+
+				for (long long x = 0; x < varVec.size(); ++x) {
+					nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
+						std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
+				}
+
 
 				varVec.clear();
 				valVec.clear();
@@ -2433,7 +2425,7 @@ namespace wiz {
 				option.Left = '{'; 
 				option.Right = '}';
 				option.LineComment = ('#');
-				option.Removal = ',';
+				option.Removal = ' '; // ','
 
 				char* buffer = nullptr;
 				ifReserver.Num = 1 << 19;
