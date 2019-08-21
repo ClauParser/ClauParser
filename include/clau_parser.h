@@ -1880,8 +1880,8 @@ namespace wiz {
 			long long len = GetLength(str);
 			long long type = GetType(str);
 
-			if (1 == len && type == 1 || type == 2 ||
-				type == 3) {
+			if (1 == len && (type == 1 || type == 2 ||
+				type == 3)) {
 				throw "check syntax error 1 : " + str;
 			}
 			return str;
@@ -2198,6 +2198,9 @@ namespace wiz {
 				nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
 
 				for (long long x = 0; x < varVec.size(); ++x) {
+					bool chk = check_syntax_error1(varVec[x], option);
+					bool chk2 = check_syntax_error1(valVec[x], option);
+
 					nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
 						std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
 				}
