@@ -91,7 +91,8 @@ namespace wiz {
 		return false;
 	}
 
-	inline int Equal(const char option, const char ch)
+
+	inline int Equal(const long long option, const long long ch)
 	{
 		if (ch == option) {
 			return 0;
@@ -451,7 +452,7 @@ namespace wiz {
 			std::vector<long long> token_arr_len(thr_num + 1, 0);
 			long long file_length;
 
-			if (thr_num > 0) {
+			if (thr_num > 1) {
 				inFile.seekg(0, inFile.end);
 				unsigned long long length = inFile.tellg();
 				inFile.seekg(0, inFile.beg);
@@ -469,7 +470,7 @@ namespace wiz {
 
 				for (int i = 1; i < thr_num; ++i) {
 					start[i] = file_length / thr_num * i;
-					for (int x = start[i]; x <= file_length; ++x) {
+					for (long long x = start[i]; x <= file_length; ++x) {
 						if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
 							start[i] = x;
 							break;
@@ -478,7 +479,7 @@ namespace wiz {
 				}
 				for (int i = 0; i < thr_num - 1; ++i) {
 					last[i] = start[i + 1] - 1;
-					for (int x = last[i]; x <= file_length; ++x) {
+					for (long long x = last[i]; x <= file_length; ++x) {
 						if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
 							last[i] = x;
 							break;
@@ -505,7 +506,7 @@ namespace wiz {
 
 			long long* token_arr = nullptr;
 
-			if (thr_num > 0) {
+			if (thr_num > 1) {
 				std::vector<std::thread> thr(thr_num);
 
 				token_arr = new long long[file_length];
@@ -1039,7 +1040,7 @@ namespace wiz {
 			for (int i = 0; i < ilist.size(); ++i) {
 				if (ilist[i] == 1) { count++; }
 				if (count == idx + 1) {
-					// iï¿½ï¿½ï¿½ï¿½ left shift!and resize!
+					// left shift!and resize!
 					for (int k = i + 1; k < ilist.size(); ++k) {
 						ilist[k - 1] = std::move(ilist[k]);
 					}
@@ -1347,7 +1348,7 @@ namespace wiz {
 			}
 		}
 		void AddItem(std::string&& name, std::string&& item) {
-			itemList.emplace_back(move(name), move(item));
+			itemList.emplace_back(std::move(name), std::move(item));
 			ilist.push_back(1);
 
 			useSortedItemList = false;
@@ -1958,7 +1959,7 @@ namespace wiz {
 			return (x & 0x00000000FFFFFFFC) >> 2;
 		}
 		static long long GetType(long long x) {
-			return x & 3; // % 4
+			return x & 3; 
 		}
 	private:
 		static bool __LoadData(const char* buffer, const long long* token_arr, long long token_arr_len, UserType* _global, const wiz::LoadDataOption* _option,
@@ -2221,7 +2222,7 @@ namespace wiz {
 		{
 			for (long long a = last; a >= start; --a) {
 				long long len = GetLength(token_arr[a]);
-				long long val = GetType(token_arr[a]); // % 4  
+				long long val = GetType(token_arr[a]); 
 
 
 				if (len == 1 && (-1 != Equal(2, val) || -1 != Equal(2, val))) { // right
@@ -2239,7 +2240,7 @@ namespace wiz {
 
 				if (a < last && pass == false) {
 					long long len = GetLength(token_arr[a + 1]);
-					long long val = GetType(token_arr[a + 1]); // % 4
+					long long val = GetType(token_arr[a + 1]); 
 
 					if (!(len == 1 && -1 != Equal(3, val))) // assignment
 					{                // NOT
@@ -2258,6 +2259,8 @@ namespace wiz {
 			long long buffer_total_len;
 			long long token_arr_len = 0;
 			bool end = false;
+
+
 			{
 				end = !reserver(option, lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
 
@@ -2265,6 +2268,7 @@ namespace wiz {
 					return true;
 				}
 			}
+		
 
 			UserType* before_next = nullptr;
 			UserType _global;
@@ -2280,7 +2284,7 @@ namespace wiz {
 				const long long num = token_arr_len; //
 
 				if (pivot_num > 0) {
-					std::vector<int> pivot;
+					std::vector<long long> pivot;
 					pivots.reserve(pivot_num);
 					pivot.reserve(pivot_num);
 
