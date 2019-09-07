@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <vector>
-#include <list>
 #include <set>
 #include <stack>
 #include <string>
@@ -92,9 +91,9 @@ namespace wiz {
 	}
 
 
-	inline int Equal(const long long option, const long long ch)
+	inline int Equal(const long long x, const long long y)
 	{
-		if (ch == option) {
+		if (x == y) {
 			return 0;
 		}
 		return -1;
@@ -178,7 +177,7 @@ namespace wiz {
 					last_idx = now_idx - 1;
 
 					if (token_last >= 0 && token_last - token_first + 1 > 0) {
-						token_arr[token_arr_count] = ((start_idx + num) << 32) + (((long long)token_last - (long long)token_first + 1) << 2) + 0;
+						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 
 						{
@@ -209,7 +208,7 @@ namespace wiz {
 					last_idx = now_idx - 1;
 
 					if (token_last >= 0 && token_last - token_first + 1 > 0) {
-						token_arr[token_arr_count] = ((start_idx + num) << 32) + (((long long)token_last - (long long)token_first + 1) << 2) + 0;
+						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 
 						{
@@ -244,7 +243,7 @@ namespace wiz {
 					token_last = x - 1;
 					last_idx = now_idx - 1;
 					if (token_last >= 0 && token_last - token_first + 1 > 0) {
-						token_arr[token_arr_count] = ((start_idx + num) << 32) + (((long long)token_last - (long long)token_first + 1) << 2) + 0;
+						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 
 						{
@@ -275,7 +274,7 @@ namespace wiz {
 					token_last = x - 1;
 					last_idx = now_idx - 1;
 					if (token_last >= 0 && token_last - token_first + 1 > 0) {
-						token_arr[token_arr_count] = ((start_idx + num) << 32) + (((long long)token_last - (long long)token_first + 1) << 2) + 0;
+						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 
 						{
@@ -312,7 +311,7 @@ namespace wiz {
 					token_last = x - 1;
 					last_idx = now_idx - 1;
 					if (token_last >= 0 && token_last - token_first + 1 > 0) {
-						token_arr[token_arr_count] = ((start_idx + num) << 32) + (((long long)token_last - (long long)token_first + 1) << 2) + 0;
+						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 						{
 							if (token_last - token_first + 1 == 1) {
@@ -347,7 +346,7 @@ namespace wiz {
 					token_last = x - 1;
 					last_idx = now_idx - 1;
 					if (token_last >= 0 && token_last - token_first + 1 > 0) {
-						token_arr[token_arr_count] = ((start_idx + num) << 32) + (((long long)token_last - (long long)token_first + 1) << 2) + 0;
+						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 						{
 							if (token_last - token_first + 1 == 1) {
@@ -405,7 +404,7 @@ namespace wiz {
 			if (token_first < last)
 			{
 				if (last - 1 - token_first + 1 > 0) {
-					token_arr[token_arr_count] = ((start_idx + num) << 32) + (((long long)token_last - (long long)token_first + 1) << 2) + 0;
+					token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 					token_arr_count++;
 
 					{
@@ -715,14 +714,14 @@ namespace wiz {
 			inited = temp.inited;
 			return *this;
 		}
-		ItemType<T>& operator=(ItemType<T>&& ta)
+		void operator=(ItemType<T>&& ta)
 		{
 			Type::operator=(ta);
-			if (data == ta.data) { return *this; }
+			if (data == ta.data) { return; }
 
 			data = std::move(ta.data);
 			inited = ta.inited;
-			return *this;
+			return;
 		}
 	};
 
@@ -862,10 +861,9 @@ namespace wiz {
 		mutable std::vector< UserType* > sortedUserTypeList;
 		mutable bool useSortedItemList = false;
 		mutable bool useSortedUserTypeList = false;
-		bool noRemove = false;
 	public:
-		explicit UserType(std::string&& name, bool noRemove = false) : Type(move(name)), parent(nullptr), noRemove(noRemove) { }
-		explicit UserType(const std::string& name = "", bool noRemove = false) : Type(name), parent(nullptr), noRemove(noRemove) { } 
+		explicit UserType(std::string&& name) : Type(move(name)), parent(nullptr) { }
+		explicit UserType(const std::string& name = "") : Type(name), parent(nullptr) { } 
 		UserType(const UserType& ut) : Type(ut.GetName()) {
 			Reset(ut);  // Initial
 		}
@@ -873,9 +871,7 @@ namespace wiz {
 			Reset2(std::move(ut));
 		}
 		virtual ~UserType() {
-			if (false == noRemove) {
-				_Remove();
-			}
+			_Remove();
 		}
 		UserType& operator=(const UserType& ut) {
 			if (this == &ut) { return *this; }
@@ -885,13 +881,13 @@ namespace wiz {
 			Reset(ut);
 			return *this;
 		}
-		UserType& operator=(UserType&& ut) {
-			if (this == &ut) { return *this; }
+		void operator=(UserType&& ut) {
+			if (this == &ut) { return; }
 
 			Type::operator=(ut);
 			RemoveUserTypeList();
 			Reset2(std::move(ut));
-			return *this;
+			return;
 		}
 	private:
 		void Reset(const UserType& ut) { 
@@ -900,24 +896,17 @@ namespace wiz {
 			commentList = ut.commentList;
 
 			//sortedItemList = ut.sortedItemList;
-			sortedUserTypeList = ut.sortedUserTypeList;
+			//sortedUserTypeList = ut.sortedUserTypeList;
 
 			useSortedItemList = false; // ut.useSortedItemList;
-			useSortedUserTypeList = ut.useSortedUserTypeList;
+			useSortedUserTypeList = false; //ut.useSortedUserTypeList;
 
-			noRemove = ut.noRemove;
 
 			userTypeList.reserve(ut.userTypeList.size());
 
 			for (int i = 0; i < ut.userTypeList.size(); ++i) {
 				userTypeList.push_back(new UserType(*ut.userTypeList[i]));
 				userTypeList.back()->parent = this;
-			}
-			if (useSortedUserTypeList) {
-				sortedUserTypeList.clear();
-				for (int i = 0; i < userTypeList.size(); ++i) {
-					sortedUserTypeList.push_back(userTypeList[i]);
-				}
 			}
 		}
 		void Reset2(UserType&& ut) {
@@ -926,12 +915,10 @@ namespace wiz {
 			commentList = std::move(ut.commentList);
 
 			//sortedItemList = std::move(ut.sortedItemList);
-			sortedUserTypeList = std::move(ut.sortedUserTypeList);
-
-			std::swap(this->noRemove, ut.noRemove);
+			//sortedUserTypeList = std::move(ut.sortedUserTypeList);
 
 			useSortedItemList = false; // ut.useSortedItemList;
-			useSortedUserTypeList = ut.useSortedUserTypeList;
+			useSortedUserTypeList = false; // ut.useSortedUserTypeList;
 
 			userTypeList.reserve(ut.userTypeList.size());
 
@@ -941,13 +928,6 @@ namespace wiz {
 				userTypeList.back()->parent = this;
 			}
 			ut.userTypeList.clear();
-
-			if (useSortedUserTypeList) {
-				sortedUserTypeList.clear();
-				for (int i = 0; i < userTypeList.size(); ++i) {
-					sortedUserTypeList.push_back(userTypeList[i]);
-				}
-			}
 		}
 
 		void _Remove()
@@ -2243,7 +2223,7 @@ namespace wiz {
 					long long val = GetType(token_arr[a + 1]); 
 
 					if (!(len == 1 && -1 != Equal(3, val))) // assignment
-					{                // NOT
+					{ // NOT
 						return a;
 					}
 				}
@@ -2258,12 +2238,13 @@ namespace wiz {
 			long long* token_arr = nullptr;
 			long long buffer_total_len;
 			long long token_arr_len = 0;
-			bool end = false;
-
 
 			{
-				end = !reserver(option, lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
+				bool success = reserver(option, lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
 
+				if (!success) {
+					return false;
+				}
 				if (token_arr_len <= 0) {
 					return true;
 				}
@@ -2276,9 +2257,7 @@ namespace wiz {
 			bool first = true;
 			long long sum = 0;
 
-			while (true) {
-				end = true;
-
+			{
 				std::set<long long> _pivots;
 				std::vector<long long> pivots;
 				const long long num = token_arr_len; //
@@ -2374,14 +2353,6 @@ namespace wiz {
 					}
 
 					before_next = next.back();
-				}
-
-
-				if (!end) {
-					//
-				}
-				else {
-					break;
 				}
 			}
 
