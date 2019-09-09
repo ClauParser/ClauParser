@@ -783,20 +783,7 @@ namespace wiz {
 			}
 			return -1;
 		}
-	public:
-		void PushComment(const std::string& comment)
-		{
-			commentList.push_back(comment);
-		}
-		void PushComment(std::string&& comment)
-		{
-			commentList.push_back(move(comment));
-		}
-		int GetCommentListSize()const { return commentList.size(); }
-		const std::string& GetCommentList(const int idx) const { return commentList[idx]; }
-		std::string& GetCommentList(const int idx) {
-			return commentList[idx];
-		}
+
 	public:
 		int GetIListSize()const { return ilist.size(); }
 		int GetItemListSize()const { return itemList.size(); }
@@ -853,7 +840,6 @@ namespace wiz {
 		}
 	private:
 		UserType* parent = nullptr;
-		std::vector<std::string> commentList;
 		std::vector<int> ilist;
 		std::vector< ItemType<std::string> > itemList;
 		std::vector< UserType* > userTypeList;
@@ -893,7 +879,6 @@ namespace wiz {
 		void Reset(const UserType& ut) { 
 			ilist = ut.ilist;
 			itemList = ut.itemList;
-			commentList = ut.commentList;
 
 			//sortedItemList = ut.sortedItemList;
 			//sortedUserTypeList = ut.sortedUserTypeList;
@@ -912,7 +897,6 @@ namespace wiz {
 		void Reset2(UserType&& ut) {
 			ilist = std::move(ut.ilist);
 			itemList = std::move(ut.itemList);
-			commentList = std::move(ut.commentList);
 
 			//sortedItemList = std::move(ut.sortedItemList);
 			//sortedUserTypeList = std::move(ut.sortedUserTypeList);
@@ -942,8 +926,6 @@ namespace wiz {
 			useSortedItemList = false;
 			useSortedUserTypeList = false;
 			RemoveUserTypeList();
-
-			commentList.clear();
 		}
 	public:
 		int GetIlistIndex(const int index, const int type)
@@ -1123,8 +1105,6 @@ namespace wiz {
 			itemList = std::vector< ItemType<std::string> >();
 
 			RemoveUserTypeList();
-
-			commentList.clear();
 
 			sortedItemList.clear();
 			sortedUserTypeList.clear();
@@ -1449,7 +1429,7 @@ namespace wiz {
 						}
 					}
 					else {
-						//std::cout << "no found" << std::endl;
+						//std::cout << "no found" << "\n";
 					}
 				}
 			}
@@ -1517,7 +1497,7 @@ namespace wiz {
 					}
 				}
 				else {
-					//std::cout << "no found" << std::endl;
+					//std::cout << "no found" << "\n";
 				}
 			}
 
@@ -1566,7 +1546,7 @@ namespace wiz {
 					}
 				}
 				else {
-					//std::cout << "no found" << std::endl;
+					//std::cout << "no found" << "\n";
 				}
 			}
 
@@ -1592,17 +1572,6 @@ namespace wiz {
 			int userTypeListCount = 0;
 
 			const bool existUserType = ut->GetUserTypeListSize() > 0;
-
-			for (int i = 0; i < ut->commentList.size(); ++i) {
-				for (int k = 0; k < depth; ++k) {
-					stream << "\t";
-				}
-				stream << (ut->commentList[i]);
-
-				if (i < ut->commentList.size() - 1 || false == ut->ilist.empty()) {
-					stream << "\n";
-				}
-			}
 
 			for (int i = 0; i < ut->ilist.size(); ++i) {
 				//std::cout << "ItemList" << endl;
@@ -1666,17 +1635,7 @@ namespace wiz {
 			int itemListCount = 0;
 			int userTypeListCount = 0;
 
-			for (int i = 0; i < ut->commentList.size(); ++i) {
-				for (int k = 0; k < depth; ++k) {
-					stream << "\t";
-				}
-				stream << (ut->commentList[i]);
-
-				if (i < ut->commentList.size() - 1 || false == ut->ilist.empty()) {
-					stream << "\n";
-				}
-
-			}
+			
 			for (int i = 0; i < ut->ilist.size(); ++i) {
 				//std::cout << "ItemList" << endl;
 				if (ut->ilist[i] == 1) {
@@ -2414,10 +2373,10 @@ namespace wiz {
 
 				inFile.close();
 			}
-			catch (const char* err) { std::cout << err << std::endl; inFile.close(); return false; }
-			catch (const std::string& e) { std::cout << e << std::endl; inFile.close(); return false; }
-			catch (std::exception e) { std::cout << e.what() << std::endl; inFile.close(); return false; }
-			catch (...) { std::cout << "not expected error" << std::endl; inFile.close(); return false; }
+			catch (const char* err) { std::cout << err << "\n"; inFile.close(); return false; }
+			catch (const std::string& e) { std::cout << e << "\n"; inFile.close(); return false; }
+			catch (std::exception e) { std::cout << e.what() << "\n"; inFile.close(); return false; }
+			catch (...) { std::cout << "not expected error" << "\n"; inFile.close(); return false; }
 
 
 			global = std::move(globalTemp);
@@ -2429,7 +2388,7 @@ namespace wiz {
 
 			// Scan + Parse 
 			if (false == LoadDataFromFile(fileName, globalTemp, thr_num, thr_num)) { return false; }
-			//std::cout << "LoadData End" << std::endl;
+			//std::cout << "LoadData End" << "\n";
 
 			global = std::move(globalTemp);
 			return true;
