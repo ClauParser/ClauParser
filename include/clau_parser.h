@@ -15,7 +15,7 @@
 #include <thread>
 
 namespace wiz {
-	template <typename T>
+	template <typename T> 
 	inline T pos_1(const T x, const int base = 10) 
 	{
 		if (x >= 0) { return x % base; }// x - ( x / 10 ) * 10; }
@@ -740,18 +740,24 @@ namespace wiz {
 				return x->GetName() < y->GetName();
 			}
 		};
+
+		int Dif(const std::string& x, const std::string& y) const {
+			return x.compare(y); // strcmp
+		}
 		int binary_find_ut(const std::vector<UserType*>& arr, const UserType& x) const
 		{
 			if (arr.empty()) { return -1; }
 
 			int left = 0, right = arr.size() - 1;
 			int middle = (left + right) / 2;
-
+			
 			while (left <= right) {
-				if (arr[middle]->GetName() == x.GetName()) {
+				const int dif = Dif(arr[middle]->GetName(), x.GetName());
+
+				if (dif == 0) { //arr[middle]->GetName() == x.GetName()) {
 					return middle;
 				}
-				else if (arr[middle]->GetName() < x.GetName()) {
+				else if (dif < 0 ) { //arr[middle]->GetName() < x.GetName()) {
 					left = middle + 1;
 				}
 				else {
@@ -762,6 +768,7 @@ namespace wiz {
 			}
 			return -1;
 		}
+
 		int binary_find_it(const std::vector<ItemType<std::string>*>& arr, const ItemType<std::string>& x) const {
 			if (arr.empty()) { return -1; }
 
@@ -769,10 +776,12 @@ namespace wiz {
 			int middle = (left + right) / 2;
 
 			while (left <= right) {
-				if (arr[middle]->GetName() == x.GetName()) {
+				const int dif = Dif(arr[middle]->GetName(), x.GetName());
+
+				if (dif == 0) { //arr[middle]->GetName() == x.GetName()) {
 					return middle;
 				}
-				else if (arr[middle]->GetName() < x.GetName()) {
+				else if (dif < 0) { //arr[middle]->GetName() < x.GetName()) {
 					left = middle + 1;
 				}
 				else {
@@ -801,7 +810,7 @@ namespace wiz {
 		{
 			return ilist[idx] == 2;
 		}
-
+		/*
 		void AddItemList(const ItemType<std::string>& strTa)
 		{
 			for (int i = 0; i < strTa.size(); ++i) {
@@ -814,6 +823,7 @@ namespace wiz {
 				this->AddItem(std::move(strTa.GetName()), std::move(strTa.Get(i)));
 			}
 		}
+		*/
 	public:
 		void Clear() {
 			itemList.clear();
@@ -1315,6 +1325,19 @@ namespace wiz {
 		}
 		void AddItem(const std::string& name, const std::string& item) {
 			itemList.emplace_back(name, item);
+			ilist.push_back(1);
+
+			useSortedItemList = false;
+		}
+		void AddItemType(wiz::ItemType<std::string>&& item) {
+			itemList.push_back(std::move(item));
+			ilist.push_back(1);
+
+			useSortedItemList = false;
+		}
+
+		void AddItemType(const wiz::ItemType<std::string>& item) {
+			itemList.push_back(item);
 			ilist.push_back(1);
 
 			useSortedItemList = false;
@@ -1864,7 +1887,7 @@ namespace wiz {
 						utCount++;
 					}
 					else if (_ut->IsItemList(i)) {
-						_next->AddItemList(std::move(_ut->GetItemList(itCount)));
+						_next->AddItemType(std::move(_ut->GetItemList(itCount)));
 						itCount++;
 					}
 				}
@@ -2011,7 +2034,7 @@ namespace wiz {
 									utCount++;
 								}
 								else {
-									ut.GetUserTypeList(0)->AddItemList(std::move(nestedUT[braceNum]->GetItemList(itCount)));
+									ut.GetUserTypeList(0)->AddItemType(std::move(nestedUT[braceNum]->GetItemList(itCount)));
 									itCount++;
 								}
 							}
