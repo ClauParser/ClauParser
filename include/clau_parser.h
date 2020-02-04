@@ -109,10 +109,11 @@ namespace wiz {
 		long long* token_arr;
 		long long* token_arr_len;
 		long long num;
+		int* err;
 	public:
 		Scanner(char* start, char* last, const wiz::LoadDataOption* option,
-			long long* token_arr, long long num, long long* token_arr_len) 
-			: start(start), last(last), option(option)
+			long long* token_arr, long long num, long long* token_arr_len, int* err) 
+			: start(start), last(last), option(option), err(err)
 		{
 			this->token_arr = token_arr;
 			this->num = num;
@@ -143,7 +144,19 @@ namespace wiz {
 					token_last = x;
 					last_idx = now_idx;
 				}
-				else if (2 == state && '\\' == *(x - 1) && '\'' == *x) {
+				else if (2 == state && '\\' == *x) {
+					state = 3;
+
+					token_last = x;
+					last_idx = now_idx;
+				}
+				else if ((2 == state || 3 == state) && '\n' == *x) {
+					*err = -1;
+					return; //throw "Error : \n is included in \' ~ \' ";
+				}
+				else if (3 == state) {
+					state = 2;
+
 					token_last = x;
 					last_idx = now_idx;
 				}
@@ -151,21 +164,28 @@ namespace wiz {
 					state = 0; token_last = x;
 					last_idx = now_idx;
 				}
-				else if (2 == state && '\n' == *x) {
-					throw "Error : \n is included in \' ~ \' ";
-				}
+				
 				else if (0 == state && '\"' == *x) {
 					state = 1;
 
 					token_last = x;
 					last_idx = now_idx;
 				}
-				else if (1 == state && '\\' == *(x - 1) && '\"' == *x) {
+				else if (1 == state && '\\' == *x) {
+					state = 4;
+
 					token_last = x;
 					last_idx = now_idx;
 				}
-				else if (1 == state && '\n' == *x) {
-					throw "error : \n is included.. in \" ~ \" ";
+				else if ((1 == state || 4 == state) && '\n' == *x) {
+					*err = -2;
+					return; // throw "error : \n is included.. in \" ~ \" ";
+				}
+				else if (4 == state) {
+					state = 1;
+
+					token_last = x;
+					last_idx = now_idx;
 				}
 				else if (1 == state && '\"' == *x) {
 					state = 0; token_last = x;
@@ -392,7 +412,7 @@ namespace wiz {
 					continue;
 				}
 				else {
-					//
+					// todo - Token - divided, but Parsing - like other general string?
 				}
 
 				token_last = x + offset;
@@ -428,8 +448,12 @@ namespace wiz {
 			}
 
 			if (state != 0) {
-				throw "Scanning Error in qouted string";
+				*err = -3;
+				return; // throw "Scanning Error in qouted string";
 			}
+
+			*err = 0;
+			return;
 		}
 	};
 
@@ -511,13 +535,35 @@ namespace wiz {
 				token_arr = new long long[file_length];
 
 				std::vector<long long> counter(thr_num, 0);
+				std::vector<int> err(thr_num, 0);
+
 				for (int i = 0; i < thr_num; ++i) {
 					thr[i] = std::thread(Scanner(buffer + start[i], buffer + last[i], &option,
-						token_arr + start[i], start[i], &counter[i]));
+						token_arr + start[i], start[i], &counter[i], &err[i]));
 				}
 
 				for (int i = 0; i < thr_num; ++i) {
 					thr[i].join();
+				}
+
+				for (int i = 0; i < thr_num; ++i) {
+					switch (err[i]) {
+					case 0:
+						// no errors.
+						break;
+					case -1:
+						std::cout << "\'\' has enter key\n";
+						break;
+					case -2:
+						std::cout << "\"\" has enter key\n";
+						break;
+					case -3:
+						std::cout << "Scanning Error in qouted string\n";
+						break;
+					default:
+						std::cout << "unknown scnner error\n";
+						break;
+					}
 				}
 
 				long long sum = 0;
@@ -534,10 +580,30 @@ namespace wiz {
 				token_arr = new long long[file_length];
 
 				long long len;
-				Scanner scanner(buffer + start[0], buffer + last[0], &option, token_arr, start[0], &len);
+				int err = 0;
+
+				Scanner scanner(buffer + start[0], buffer + last[0], &option, token_arr, start[0], &len, &err);
 
 				scanner();
 
+				switch (err) {
+				case 0:
+					// no errors.
+					break;
+				case -1:
+					std::cout << "\'\' has enter key\n";
+					break;
+				case -2:
+					std::cout << "\"\" has enter key\n";
+					break;
+				case -3:
+					std::cout << "Scanning Error in qouted string\n";
+					break;
+				default:
+					std::cout << "unknown scnner error\n";
+					break;
+
+				}
 				*_token_arr_len = len;
 			}
 
@@ -1608,7 +1674,7 @@ namespace wiz {
 						}
 						if (ut->itemList[itemListCount].GetName() != "") {
 							temp += ut->itemList[itemListCount].GetName();
-							temp += "=";
+							temp += " = ";
 						}
 						temp += ut->itemList[itemListCount].Get(j);
 						if (j != ut->itemList[itemListCount].size() - 1) {
@@ -1633,7 +1699,7 @@ namespace wiz {
 					}
 
 					if (ut->userTypeList[userTypeListCount]->GetName() != "") {
-						stream << ut->userTypeList[userTypeListCount]->GetName() << "=";
+						stream << ut->userTypeList[userTypeListCount]->GetName() << " = ";
 					}
 
 					stream << "{\n";
@@ -1839,16 +1905,17 @@ namespace wiz {
 	class LoadData
 	{
 	private:
-		static long long check_syntax_error1(long long str, const wiz::LoadDataOption& opt) {
+		static long long check_syntax_error1(long long str, int* err) {
 			long long len = GetLength(str);
 			long long type = GetType(str);
 
 			if (1 == len && (type == 1 || type == 2 ||
 				type == 3)) {
-				throw "check syntax error 1 : " + str;
+				*err = -4;
 			}
 			return str;
 		}
+	public:
 		static int Merge(UserType* next, UserType* ut, UserType** ut_next)
 		{
 			//check!!
@@ -1913,19 +1980,19 @@ namespace wiz {
 				}
 			}
 		}
-
+	private:
 		static long long GetIdx(long long x) {
 			return (x >> 32) & 0x00000000FFFFFFFF;
 		}
 		static long long GetLength(long long x) {
 			return (x & 0x00000000FFFFFFFC) >> 2;
 		}
-		static long long GetType(long long x) {
+		static long long GetType(long long x) { //to enum or enum class?
 			return x & 3; 
 		}
 	private:
 		static bool __LoadData(const char* buffer, const long long* token_arr, long long token_arr_len, UserType* _global, const wiz::LoadDataOption* _option,
-			int start_state, int last_state, UserType** next) // first, strVec.empty() must be true!!
+			int start_state, int last_state, UserType** next, int* err) 
 		{
 			std::vector<long long> varVec;
 			std::vector<long long> valVec;
@@ -2071,8 +2138,8 @@ namespace wiz {
 
 									val = token_arr[i];
 
-									varVec.push_back(check_syntax_error1(var, option));
-									valVec.push_back(check_syntax_error1(val, option));
+									varVec.push_back(check_syntax_error1(var, err));
+									valVec.push_back(check_syntax_error1(val, err));
 
 									val = 0;
 
@@ -2087,8 +2154,8 @@ namespace wiz {
 							if (x <= token_arr + token_arr_len - 1)
 							{
 								val = token_arr[i];
-								varVec.push_back(check_syntax_error1(var, option));
-								valVec.push_back(check_syntax_error1(val, option));
+								varVec.push_back(check_syntax_error1(var, err));
+								valVec.push_back(check_syntax_error1(val, err));
 								val = 0;
 
 								state = 0;
@@ -2136,8 +2203,8 @@ namespace wiz {
 						if (x <= token_arr + token_arr_len - 1) {
 							val = token_arr[i];
 
-							varVec.push_back(check_syntax_error1(var, option));
-							valVec.push_back(check_syntax_error1(val, option));
+							varVec.push_back(check_syntax_error1(var, err));
+							valVec.push_back(check_syntax_error1(val, err));
 							var = 0; val = 0;
 
 							state = 0;
@@ -2147,7 +2214,8 @@ namespace wiz {
 				break;
 				default:
 					// syntax err!!
-					throw "syntax error ";
+					*err = -1;
+					return false; // throw "syntax error ";
 					break;
 				}
 			}
@@ -2171,14 +2239,30 @@ namespace wiz {
 			}
 
 			if (state != last_state) {
-				throw std::string("error final state is not last_state!  : ") + toStr(state);
+				*err = -2; 
+				return false;
+				// throw std::string("error final state is not last_state!  : ") + toStr(state);
 			}
 			if (x > token_arr + token_arr_len) {
-				throw std::string("error x > buffer + buffer_len: ");
+				*err = -3;
+				return false;
+				//throw std::string("error x > buffer + buffer_len: ");
 			}
 
 			return true;
 		}
+		
+		static bool __STR(const long long token) {
+			return GetType(token) == 0; // General (not {, }, =)
+		}
+		static bool __LEFT(const long long token) {
+			return GetType(token) == 1;
+		}
+		static bool __RIGHT(const long long token) {
+			return GetType(token) == 2;
+		}
+
+		
 
 		static long long FindDivisionPlace(const char* buffer, const long long* token_arr, long long start, long long last, const wiz::LoadDataOption& option)
 		{
@@ -2270,18 +2354,18 @@ namespace wiz {
 					std::vector<UserType> __global(pivots.size() + 1);
 
 					std::vector<std::thread> thr(pivots.size() + 1);
-
+					std::vector<int> err(pivots.size() + 1, 0);
 					{
 						long long idx = pivots.empty() ? num - 1 : pivots[0]; 
 						long long _token_arr_len = idx - 0 + 1;
 
-						thr[0] = std::thread(__LoadData, buffer, token_arr, _token_arr_len, &__global[0], &option, 0, 0, &next[0]);
+						thr[0] = std::thread(__LoadData, buffer, token_arr, _token_arr_len, &__global[0], &option, 0, 0, &next[0], &err[0]);
 					}
 
 					for (int i = 1; i < pivots.size(); ++i) {
 						long long _token_arr_len = pivots[i] - (pivots[i - 1] + 1) + 1;
 
-						thr[i] = std::thread(__LoadData, buffer, token_arr + pivots[i - 1] + 1, _token_arr_len,  &__global[i], &option, 0, 0, &next[i]);
+						thr[i] = std::thread(__LoadData, buffer, token_arr + pivots[i - 1] + 1, _token_arr_len,  &__global[i], &option, 0, 0, &next[i], &err[i]);
 
 					}
 
@@ -2289,12 +2373,32 @@ namespace wiz {
 						long long _token_arr_len = num - 1 - (pivots.back() + 1) + 1;
 
 						thr[pivots.size()] = std::thread(__LoadData, buffer, token_arr + pivots.back() + 1,_token_arr_len,  &__global[pivots.size()],
-							&option, 0, 0, &next[pivots.size()]);
+							&option, 0, 0, &next[pivots.size()], &err[pivots.size()]);
 					}
 
 					// wait
 					for (int i = 0; i < thr.size(); ++i) {
 						thr[i].join();
+					}
+
+					for (int i = 0; i < err.size(); ++i) {
+						switch (err[i]) {
+						case 0:
+							break;
+						case -1:
+						case -4:
+							std::cout << "Syntax Error\n";
+							break;
+						case -2:
+							std::cout << "error final state is not last_state!\n";
+							break;
+						case -3:
+							std::cout << "error x > buffer + buffer_len:\n";
+							break;
+						default:
+							std::cout << "unknown parser error\n";
+							break;
+						}
 					}
 
 					// Merge
@@ -2398,7 +2502,7 @@ namespace wiz {
 			}
 			catch (const char* err) { std::cout << err << "\n"; inFile.close(); return false; }
 			catch (const std::string& e) { std::cout << e << "\n"; inFile.close(); return false; }
-			catch (std::exception e) { std::cout << e.what() << "\n"; inFile.close(); return false; }
+			catch (const std::exception& e) { std::cout << e.what() << "\n"; inFile.close(); return false; }
 			catch (...) { std::cout << "not expected error" << "\n"; inFile.close(); return false; }
 
 
