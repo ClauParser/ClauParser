@@ -127,18 +127,18 @@ namespace wiz {
 		}
 	public:
 		void operator() () {
-			arr_count = nullptr;
+			//arr_count = nullptr;
 			if (arr_count) {
 				long long count = 0;
 				{
-					for (long long i = 0; i < arr_count_size &&
+					for (long long i = 0; i < arr_count_size && 
 						(start - buffer) > arr_count[count]; i += 2, count += 2) {
 						//
 					}
 				}
 
-				if (buffer + arr_count[count] < start) {
-					start = buffer + arr_count[count] + 1;
+				if (count < arr_count_size && buffer + arr_count[count] < start) {
+					start = buffer + arr_count[count + 1] + 1;
 				}
 
 				long long token_arr_count = 0;
@@ -156,6 +156,24 @@ namespace wiz {
 					int idx;
 
 					if (x == buffer + arr_count[count]) {
+						if (token_last >= 0 && token_last - token_first + 1 > 0) {
+							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
+							token_arr_count++;
+							{
+								if (token_last - token_first + 1 == 1) {
+									if (start[start_idx] == option->Left) {
+										token_arr[token_arr_count - 1] += 1;
+									}
+									if (start[start_idx] == option->Right) {
+										token_arr[token_arr_count - 1] += 2;
+									}
+									if (start[start_idx] == option->Assignment) {
+										token_arr[token_arr_count - 1] += 3;
+									}
+								}
+							}
+						}
+
 						start_idx = i;
 						token_first = buffer + arr_count[count];
 						token_last = buffer + arr_count[count + 1]; // count : even index;
@@ -180,6 +198,8 @@ namespace wiz {
 						last_idx = i + 1;
 
 						count += 2;
+
+						continue;
 					}
 					else if (0 == state && -1 != (idx = Equal(option->Removal, *x)))
 					{
@@ -402,7 +422,7 @@ namespace wiz {
 						continue;
 					}
 					else {
-						// todo - Token - divided, but Parsing - like other general string?
+						//
 					}
 
 					token_last = x + offset;
@@ -817,7 +837,7 @@ namespace wiz {
 					thr[i] = std::thread(_func, text, text + length / thr_num * i, length / thr_num, arr + length / thr_num * i, arr_count + i);
 				}
 				int last_length = length - length / thr_num * (thr_num - 1);
-				thr[thr_num - 1] = std::thread(_func, text, text, last_length, arr + length / thr_num * (thr_num - 1), arr_count + thr_num - 1);
+				thr[thr_num - 1] = std::thread(_func, text, text + length / thr_num * (thr_num - 1), last_length, arr + length / thr_num * (thr_num - 1), arr_count + thr_num - 1);
 				for (int i = 0; i < thr_num; ++i) {
 					thr[i].join();
 				}
@@ -827,13 +847,13 @@ namespace wiz {
 			{ // debug
 			//	for (int i = 0; i < length; ++i) {
 			//		std::cout << arr[i] << " ";
-			//	}
+			///	}
 			//	std::cout << "\n";
 			}
 
 			{
 				int _count = 0;
-				for (int i = 0; i < 8; ++i) {
+				for (int i = 0; i < thr_num; ++i) {
 					for (int j = 0, k = 0; j < arr_count[i]; ++j, ++k) {
 						// pass zero.. 
 						if (0 == arr[arr_start[i] + k]) {
@@ -852,7 +872,7 @@ namespace wiz {
 			//	for (int i = 0; i < count; ++i) {
 			//		std::cout << arr[i] << " ";
 			//	}
-			//	std::cout << "\n";
+				//std::cout << "\n";
 			}
 
 			{
@@ -897,12 +917,11 @@ namespace wiz {
 			}
 
 			{ //debug
-			//	for (int i = 0; i < count; ++i) {
-			//		std::cout << (char)text[arr[i]] << " ";
-			//	}
-			//	std::cout << "\n";
+				//for (int i = 0; i < count; ++i) {
+				//	std::cout << arr[i] << " ";
+				//}
+				//std::cout << "\n";
 			}
-
 
 			{
 				delete[] arr_start;
@@ -1004,6 +1023,10 @@ namespace wiz {
 
 				for (int i = 0; i < thr_num; ++i) {
 					thr[i].join();
+				}
+
+				{
+					delete[] arr_count;
 				}
 
 				for (int i = 0; i < thr_num; ++i) {
