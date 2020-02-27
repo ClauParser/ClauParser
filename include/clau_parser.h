@@ -131,7 +131,7 @@ namespace wiz {
 			if (arr_count) {
 				long long count = 0;
 				{
-					for (long long i = 0; i < arr_count_size && 
+					for (long long i = 0; i < arr_count_size &&
 						(start - buffer) > arr_count[count]; i += 2, count += 2) {
 						//
 					}
@@ -804,25 +804,26 @@ namespace wiz {
 	{
 	private:
 
-		static void _func(const char* buffer, const char* text, const int length, long* arr, long* arr_count) {
-			*arr_count = 0;
-
+		static void _func(const int dif, const char* text, const int length, long* arr, long* arr_count) {
+			int _arr_count = 0;
+		
 			for (int i = 0; i < length; ++i) {
-				arr[i] = 0;
 				switch (text[i]) {
 				case '\"':
 				case '\\':
 				case '=':
 				case '\n':
 				case '#':
-					arr[*arr_count] = i + (int)(text - buffer); *arr_count += 1;
+					arr[_arr_count] = i + dif; _arr_count += 1;
 					break;
 				}
 			}
+			
+			*arr_count = _arr_count;
 		}
 
 		static void func(const char* text, const int length, long*& _arr_count, const int thr_num, long long& _arr_count_size) {
-			long* arr = new long[length];
+			long* arr = (long*)calloc(length, sizeof(long));// long[length];
 			long* arr_count = new long[thr_num];
 			long* arr_start = new long[thr_num];
 			long count = -2;
@@ -830,14 +831,14 @@ namespace wiz {
 			for (int i = 0; i < thr_num; ++i) {
 				arr_start[i] = length / thr_num * i;
 			}
-
+			
 			{
 				std::thread* thr = new std::thread[thr_num];
 				for (int i = 0; i < thr_num - 1; ++i) {
-					thr[i] = std::thread(_func, text, text + length / thr_num * i, length / thr_num, arr + length / thr_num * i, arr_count + i);
+					thr[i] = std::thread(_func, length / thr_num * i, text + length / thr_num * i, length / thr_num, arr + length / thr_num * i, arr_count + i);
 				}
 				int last_length = length - length / thr_num * (thr_num - 1);
-				thr[thr_num - 1] = std::thread(_func, text, text + length / thr_num * (thr_num - 1), last_length, arr + length / thr_num * (thr_num - 1), arr_count + thr_num - 1);
+				thr[thr_num - 1] = std::thread(_func, length / thr_num * (thr_num - 1), text + length / thr_num * (thr_num - 1), last_length, arr + length / thr_num * (thr_num - 1), arr_count + thr_num - 1);
 				for (int i = 0; i < thr_num; ++i) {
 					thr[i].join();
 				}
@@ -875,7 +876,7 @@ namespace wiz {
 				//std::cout << "\n";
 			}
 
-			{
+			{ // todo - add error check!
 				int _count = 0;
 				int state = 0;
 				for (int i = 0; i < count; ++i) {
@@ -963,7 +964,10 @@ namespace wiz {
 				buffer[file_length] = '\0';
 
 				{
+					//int a = clock();
 					func(buffer, file_length, arr_count, thr_num, arr_count_size);
+					//int b = clock();
+				//	std::cout << b - a << "ms\n";
 				}
 
 
@@ -971,22 +975,23 @@ namespace wiz {
 
 				for (int i = 1; i < thr_num; ++i) {
 					start[i] = file_length / thr_num * i;
-
+					/*
 					for (long long x = start[i]; x <= file_length; ++x) {
 						if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
 							start[i] = x;
 							break;
 						}
 					}
+					*/
 				}
 				for (int i = 0; i < thr_num - 1; ++i) {
 					last[i] = start[i + 1] - 1;
-					for (long long x = last[i]; x <= file_length; ++x) {
+				/*	for (long long x = last[i]; x <= file_length; ++x) {
 						if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
 							last[i] = x;
 							break;
 						}
-					}
+					}*/
 				}
 				last[thr_num - 1] = file_length;
 			}
@@ -1026,7 +1031,7 @@ namespace wiz {
 				}
 
 				{
-					delete[] arr_count;
+					free(arr_count);//free(arr);
 				}
 
 				for (int i = 0; i < thr_num; ++i) {
@@ -2789,8 +2794,13 @@ namespace wiz {
 			long long token_arr_len = 0;
 
 			{
+				int a = clock();
+
 				bool success = reserver(option, lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
 
+
+				int b = clock();
+				std::cout << b - a << "\n";
 				if (!success) {
 					return false;
 				}
