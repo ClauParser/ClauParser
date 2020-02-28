@@ -110,13 +110,13 @@ namespace wiz {
 		long long* token_arr_len;
 		long long num;
 		int* err;
-		long* arr_count;
-		long count;
+		long long* arr_count;
+		long long count;
 		long long arr_count_size;
 		char* buffer = 0;
 	public:
 		Scanner(long long start, long long last, const wiz::LoadDataOption* option,
-			long long* token_arr, long long num, long long* token_arr_len, char* buffer, int* err, long* arr_count, long count, long long arr_count_size)
+			long long* token_arr, long long num, long long* token_arr_len, char* buffer, int* err, long long* arr_count, long long count, long long arr_count_size)
 			: start(start), last(last), option(option), buffer(buffer), err(err), arr_count(arr_count), count(count), arr_count_size(arr_count_size)
 		{
 			this->token_arr = token_arr;
@@ -792,7 +792,7 @@ namespace wiz {
 	{
 	private:
 
-		static void _func(const int dif, const char* text, const int length, long* arr, long* arr_count) {
+		static void _func(const int dif, const char* text, const int length, long long* arr, long long* arr_count) {
 			int _arr_count = 0;
 		
 			for (int i = 0; i < length; ++i) {
@@ -811,10 +811,10 @@ namespace wiz {
 			*arr_count = _arr_count;
 		}
 
-		static void func(const char* text, const int length, long*& _arr_count, const int thr_num, long long& _arr_count_size) {
-			long* arr = (long*)calloc(length + 2, sizeof(long));// long[length];
-			long* arr_count = new long[thr_num];
-			long* arr_start = new long[thr_num];
+		static void func(const char* text, const int length, long long*& _arr_count, const int thr_num, long long& _arr_count_size) {
+			long long* arr = (long long*)calloc(length, sizeof(long long));// long[length];
+			long long* arr_count = new long long[thr_num];
+			long long* arr_start = new long long[thr_num];
 			long count = -2;
 
 			for (int i = 0; i < thr_num; ++i) {
@@ -934,7 +934,7 @@ namespace wiz {
 				return { false, 0 };
 			}
 
-			long* arr_count = nullptr; //
+			long long* arr_count = nullptr; //
 			long long arr_count_size = 0;
 
 			std::string temp;
@@ -1017,7 +1017,7 @@ namespace wiz {
 				std::vector<long long> counter(thr_num, 0);
 				std::vector<int> err(thr_num, 0);
 
-				std::vector<long> count(thr_num, -1); // start_count?
+				std::vector<long long> count(thr_num, -1); // start_count?
 
 				{
 					long long start_count = 0;
