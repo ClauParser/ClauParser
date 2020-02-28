@@ -102,21 +102,22 @@ namespace wiz {
 	class Scanner
 	{
 	private:
-		char* start;
-		char* last;
+		long long start;
+		long long last;
 	public:
 		const wiz::LoadDataOption* option;
 		long long* token_arr;
 		long long* token_arr_len;
 		long long num;
 		int* err;
-		char* buffer;
 		long* arr_count;
+		long count;
 		long long arr_count_size;
+		char* buffer = 0;
 	public:
-		Scanner(char* start, char* last, const wiz::LoadDataOption* option,
-			long long* token_arr, long long num, long long* token_arr_len, int* err, char* buffer, long* arr_count, long long arr_count_size)
-			: start(start), last(last), option(option), err(err), buffer(buffer), arr_count(arr_count), arr_count_size(arr_count_size)
+		Scanner(long long start, long long last, const wiz::LoadDataOption* option,
+			long long* token_arr, long long num, long long* token_arr_len, char* buffer, int* err, long* arr_count, long count, long long arr_count_size)
+			: start(start), last(last), option(option), buffer(buffer), err(err), arr_count(arr_count), count(count), arr_count_size(arr_count_size)
 		{
 			this->token_arr = token_arr;
 			this->num = num;
@@ -128,46 +129,35 @@ namespace wiz {
 	public:
 		void operator() () {
 			//arr_count = nullptr;
-			if (arr_count) {
-				long long count = 0;
-				{
-					for (long long i = 0; i < arr_count_size &&
-						(start - buffer) > arr_count[count]; i += 2, count += 2) {
-						//
-					}
-				}
-
-				if (count < arr_count_size && buffer + arr_count[count] < start) {
-					start = buffer + arr_count[count + 1] + 1;
-				}
-
+			if (true) {
 				long long token_arr_count = 0;
 				long long start_idx = 0;
 				long long last_idx = 0;
-				char* token_first = start;
-				char* token_last = start;
+				long long token_first = start;
+				long long token_last = start - 1; //?
 				int state = 0;
 
 				long long now_idx = 0;
 
 				for (long long i = 0; start + i < last; ++i, ++now_idx) {
-					char* x = start + i;
+					const char x = buffer[start + i];
+					const int _x = start + i;
 					long long offset = 0;
 					int idx;
 
-					if (x == buffer + arr_count[count]) {
-						if (token_last >= 0 && token_last - token_first + 1 > 0) {
+					if (arr_count_size > 0 && count >= 0 && count < arr_count_size && _x == arr_count[count]) {
+						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
 							{
 								if (token_last - token_first + 1 == 1) {
-									if (start[start_idx] == option->Left) {
+									if (buffer[start + start_idx] == option->Left) {
 										token_arr[token_arr_count - 1] += 1;
 									}
-									if (start[start_idx] == option->Right) {
+									if (buffer[start + start_idx] == option->Right) {
 										token_arr[token_arr_count - 1] += 2;
 									}
-									if (start[start_idx] == option->Assignment) {
+									if (buffer[start + start_idx] == option->Assignment) {
 										token_arr[token_arr_count - 1] += 3;
 									}
 								}
@@ -175,21 +165,17 @@ namespace wiz {
 						}
 
 						start_idx = i;
-						token_first = buffer + arr_count[count];
-						token_last = buffer + arr_count[count + 1]; // count : even index;
+						token_first = arr_count[count];
+						token_last = arr_count[count + 1]; // count : even index;
 
 
-						if (token_last >= 0 && token_last - token_first + 1 > 0) {
+						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
 						}
-
-						x = token_last;
-						//
-
-						//
-						token_last = x + 1;
-						token_first = x + 1;
+						
+						token_last = token_last + 1;
+						token_first = token_last;
 
 						i += (arr_count[count + 1] - arr_count[count]);
 
@@ -201,30 +187,30 @@ namespace wiz {
 
 						continue;
 					}
-					else if (0 == state && -1 != (idx = Equal(option->Removal, *x)))
+					else if (0 == state && -1 != (idx = Equal(option->Removal, x)))
 					{
-						token_last = x - 1;
+						token_last = _x - 1;
 						last_idx = now_idx - 1;
 
-						if (token_last >= 0 && token_last - token_first + 1 > 0) {
+						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
 
 							{
 								if (token_last - token_first + 1 == 1) {
-									if (start[start_idx] == option->Left) {
+									if (buffer[start + start_idx] == option->Left) {
 										token_arr[token_arr_count - 1] += 1;
 									}
-									if (start[start_idx] == option->Right) {
+									if (buffer[start + start_idx] == option->Right) {
 										token_arr[token_arr_count - 1] += 2;
 									}
-									if (start[start_idx] == option->Assignment) {
+									if (buffer[start + start_idx] == option->Assignment) {
 										token_arr[token_arr_count - 1] += 3;
 									}
 								}
 							}
 
-							token_first = x + 1;
+							token_first = _x + 1;
 							start_idx = now_idx + 1;
 						}
 						else {
@@ -233,29 +219,29 @@ namespace wiz {
 						}
 						continue;
 					}
-					else if (0 == state && -1 != (idx = Equal(option->Assignment, *x))) {
-						token_last = x - 1;
+					else if (0 == state && -1 != (idx = Equal(option->Assignment, x))) {
+						token_last = _x - 1;
 						last_idx = now_idx - 1;
 
-						if (token_last >= 0 && token_last - token_first + 1 > 0) {
+						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
 
 							{
 								if (token_last - token_first + 1 == 1) {
-									if (start[start_idx] == option->Left) {
+									if (buffer[start + start_idx] == option->Left) {
 										token_arr[token_arr_count - 1] += 1;
 									}
-									if (start[start_idx] == option->Right) {
+									if (buffer[start + start_idx] == option->Right) {
 										token_arr[token_arr_count - 1] += 2;
 									}
-									if (start[start_idx] == option->Assignment) {
+									if (buffer[start + start_idx] == option->Assignment) {
 										token_arr[token_arr_count - 1] += 3;
 									}
 								}
 							}
 
-							token_first = x + 1;
+							token_first = _x + 1;
 							start_idx = now_idx + 1;
 
 							token_arr[token_arr_count] = ((i + num) << 32) + ((1) << 2) + 3;
@@ -269,28 +255,28 @@ namespace wiz {
 							start_idx = start_idx + 1;
 						}
 					}
-					else if (0 == state && isWhitespace(*x)) { // isspace ' ' \t \r \n , etc... ?
-						token_last = x - 1;
+					else if (0 == state && isWhitespace(x)) { // isspace ' ' \t \r \n , etc... ?
+						token_last = _x - 1;
 						last_idx = now_idx - 1;
-						if (token_last >= 0 && token_last - token_first + 1 > 0) {
+						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
 
 							{
 								if (token_last - token_first + 1 == 1) {
-									if (start[start_idx] == option->Left) {
+									if (buffer[start + start_idx] == option->Left) {
 										token_arr[token_arr_count - 1] += 1;
 									}
-									if (start[start_idx] == option->Right) {
+									if (buffer[start + start_idx] == option->Right) {
 										token_arr[token_arr_count - 1] += 2;
 									}
-									if (start[start_idx] == option->Assignment) {
+									if (buffer[start + start_idx] == option->Assignment) {
 										token_arr[token_arr_count - 1] += 3;
 									}
 								}
 							}
 
-							token_first = x + 1;
+							token_first = _x + 1;
 
 							start_idx = now_idx + 1;
 						}
@@ -300,28 +286,28 @@ namespace wiz {
 							start_idx = start_idx + 1;
 						}
 					}
-					else if (0 == state && -1 != (idx = Equal(option->Left, *x))) {
-						token_last = x - 1;
+					else if (0 == state && -1 != (idx = Equal(option->Left, x))) {
+						token_last = _x - 1;
 						last_idx = now_idx - 1;
-						if (token_last >= 0 && token_last - token_first + 1 > 0) {
+						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
 
 							{
 								if (token_last - token_first + 1 == 1) {
-									if (start[start_idx] == option->Left) {
+									if (buffer[start + start_idx] == option->Left) {
 										token_arr[token_arr_count - 1] += 1;
 									}
-									if (start[start_idx] == option->Right) {
+									if (buffer[start + start_idx] == option->Right) {
 										token_arr[token_arr_count - 1] += 2;
 									}
-									if (start[start_idx] == option->Assignment) {
+									if (buffer[start + start_idx] == option->Assignment) {
 										token_arr[token_arr_count - 1] += 3;
 									}
 								}
 							}
 
-							token_first = x + 1;
+							token_first = _x + 1;
 
 							start_idx = now_idx + 1;
 
@@ -337,27 +323,27 @@ namespace wiz {
 							start_idx = start_idx + 1;
 						}
 					}
-					else if (0 == state && -1 != (idx = Equal(option->Right, *x))) {
-						token_last = x - 1;
+					else if (0 == state && -1 != (idx = Equal(option->Right, x))) {
+						token_last = _x - 1;
 						last_idx = now_idx - 1;
-						if (token_last >= 0 && token_last - token_first + 1 > 0) {
+						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
 							{
 								if (token_last - token_first + 1 == 1) {
-									if (start[start_idx] == option->Left) {
+									if (buffer[start + start_idx] == option->Left) {
 										token_arr[token_arr_count - 1] += 1;
 									}
-									if (start[start_idx] == option->Right) {
+									if (buffer[start + start_idx] == option->Right) {
 										token_arr[token_arr_count - 1] += 2;
 									}
-									if (start[start_idx] == option->Assignment) {
+									if (buffer[start + start_idx] == option->Assignment) {
 										token_arr[token_arr_count - 1] += 3;
 									}
 								}
 							}
 
-							token_first = x + 1;
+							token_first = _x + 1;
 							start_idx = now_idx + 1;
 
 							token_arr[token_arr_count] = ((i + num) << 32) + ((1) << 2) + 2;
@@ -372,27 +358,27 @@ namespace wiz {
 						}
 					}
 					else if (0 == state &&
-						-1 != Equal(*x, option->LineComment)) {
-						token_last = x - 1;
+						-1 != Equal(x, option->LineComment)) {
+						token_last = _x - 1;
 						last_idx = now_idx - 1;
-						if (token_last >= 0 && token_last - token_first + 1 > 0) {
+						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
 							{
 								if (token_last - token_first + 1 == 1) {
-									if (start[start_idx] == option->Left) {
+									if (buffer[start + start_idx] == option->Left) {
 										token_arr[token_arr_count - 1] += 1;
 									}
-									if (start[start_idx] == option->Right) {
+									if (buffer[start + start_idx] == option->Right) {
 										token_arr[token_arr_count - 1] += 2;
 									}
-									if (start[start_idx] == option->Assignment) {
+									if (buffer[start + start_idx] == option->Assignment) {
 										token_arr[token_arr_count - 1] += 3;
 									}
 								}
 							}
 
-							x = token_last + 1;
+							//x = token_last + 1;
 							now_idx = last_idx + 1;
 							token_first = token_last + 1;
 							start_idx = last_idx + 1;
@@ -401,8 +387,8 @@ namespace wiz {
 							last_idx = last_idx + 1;
 						}
 
-						for (; x <= last; ++x) {
-							if (*x == '\n' || *x == '\0')
+						for (; last_idx <= last; ++last_idx) {
+							if (buffer[last_idx] == '\n' || buffer[last_idx] == '\0')
 							{
 								break;
 							}
@@ -411,13 +397,13 @@ namespace wiz {
 							now_idx++;
 							token_last++;
 
-							last_idx++;
+						//	last_idx++;
 						}
 
-						token_first = x + 1;
+						token_first = token_last + 1;
 						start_idx = now_idx + 1;
 
-						token_last = x + 1;
+						token_last = token_last + 1;
 						last_idx = now_idx + 1;
 						continue;
 					}
@@ -425,7 +411,7 @@ namespace wiz {
 						//
 					}
 
-					token_last = x + offset;
+					token_last = _x + offset;
 
 					last_idx = now_idx + offset;
 
@@ -434,18 +420,18 @@ namespace wiz {
 				if (token_first < last)
 				{
 					if (last - 1 - token_first + 1 > 0) {
-						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
+						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((last - 1 - token_first + 1) << 2) + 0;
 						token_arr_count++;
 
 						{
 							if (last - 1 - token_first + 1 == 1) {
-								if (start[start_idx] == option->Left) {
+								if (buffer[start + start_idx] == option->Left) {
 									token_arr[token_arr_count - 1] += 1;
 								}
-								if (start[start_idx] == option->Right) {
+								if (buffer[start + start_idx] == option->Right) {
 									token_arr[token_arr_count - 1] += 2;
 								}
-								if (start[start_idx] == option->Assignment) {
+								if (buffer[start + start_idx] == option->Assignment) {
 									token_arr[token_arr_count - 1] += 3;
 								}
 							}
@@ -466,6 +452,7 @@ namespace wiz {
 				return;
 			}
 
+			/*
 			long long token_arr_count = 0;
 			long long start_idx = 0;
 			long long last_idx = 0;
@@ -538,19 +525,19 @@ namespace wiz {
 					token_last = x - 1;
 					last_idx = now_idx - 1;
 
-					if (token_last >= 0 && token_last - token_first + 1 > 0) {
+					if (token_last - token_first + 1 > 0) {
 						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 
 						{
 							if (token_last - token_first + 1 == 1) {
-								if (start[start_idx] == option->Left) {
+								if (buffer[start + start_idx] == option->Left) {
 									token_arr[token_arr_count - 1] += 1;
 								}
-								if (start[start_idx] == option->Right) {
+								if (buffer[start + start_idx] == option->Right) {
 									token_arr[token_arr_count - 1] += 2;
 								}
-								if (start[start_idx] == option->Assignment) {
+								if (buffer[start + start_idx] == option->Assignment) {
 									token_arr[token_arr_count - 1] += 3;
 								}
 							}
@@ -569,19 +556,19 @@ namespace wiz {
 					token_last = x - 1;
 					last_idx = now_idx - 1;
 
-					if (token_last >= 0 && token_last - token_first + 1 > 0) {
+					if (token_last - token_first + 1 > 0) {
 						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 
 						{
 							if (token_last - token_first + 1 == 1) {
-								if (start[start_idx] == option->Left) {
+								if (buffer[start + start_idx] == option->Left) {
 									token_arr[token_arr_count - 1] += 1;
 								}
-								if (start[start_idx] == option->Right) {
+								if (buffer[start + start_idx] == option->Right) {
 									token_arr[token_arr_count - 1] += 2;
 								}
-								if (start[start_idx] == option->Assignment) {
+								if (buffer[start + start_idx] == option->Assignment) {
 									token_arr[token_arr_count - 1] += 3;
 								}
 							}
@@ -604,19 +591,19 @@ namespace wiz {
 				else if (0 == state && isWhitespace(*x)) { // isspace ' ' \t \r \n , etc... ?
 					token_last = x - 1;
 					last_idx = now_idx - 1;
-					if (token_last >= 0 && token_last - token_first + 1 > 0) {
+					if (token_last - token_first + 1 > 0) {
 						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 
 						{
 							if (token_last - token_first + 1 == 1) {
-								if (start[start_idx] == option->Left) {
+								if (buffer[start + start_idx] == option->Left) {
 									token_arr[token_arr_count - 1] += 1;
 								}
-								if (start[start_idx] == option->Right) {
+								if (buffer[start + start_idx] == option->Right) {
 									token_arr[token_arr_count - 1] += 2;
 								}
-								if (start[start_idx] == option->Assignment) {
+								if (buffer[start + start_idx] == option->Assignment) {
 									token_arr[token_arr_count - 1] += 3;
 								}
 							}
@@ -635,19 +622,19 @@ namespace wiz {
 				else if (0 == state && -1 != (idx = Equal(option->Left, *x))) {
 					token_last = x - 1;
 					last_idx = now_idx - 1;
-					if (token_last >= 0 && token_last - token_first + 1 > 0) {
+					if (token_last - token_first + 1 > 0) {
 						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 
 						{
 							if (token_last - token_first + 1 == 1) {
-								if (start[start_idx] == option->Left) {
+								if (buffer[start + start_idx] == option->Left) {
 									token_arr[token_arr_count - 1] += 1;
 								}
-								if (start[start_idx] == option->Right) {
+								if (buffer[start + start_idx] == option->Right) {
 									token_arr[token_arr_count - 1] += 2;
 								}
-								if (start[start_idx] == option->Assignment) {
+								if (buffer[start + start_idx] == option->Assignment) {
 									token_arr[token_arr_count - 1] += 3;
 								}
 							}
@@ -672,18 +659,18 @@ namespace wiz {
 				else if (0 == state && -1 != (idx = Equal(option->Right, *x))) {
 					token_last = x - 1;
 					last_idx = now_idx - 1;
-					if (token_last >= 0 && token_last - token_first + 1 > 0) {
+					if (token_last - token_first + 1 > 0) {
 						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 						{
 							if (token_last - token_first + 1 == 1) {
-								if (start[start_idx] == option->Left) {
+								if (buffer[start + start_idx] == option->Left) {
 									token_arr[token_arr_count - 1] += 1;
 								}
-								if (start[start_idx] == option->Right) {
+								if (buffer[start + start_idx] == option->Right) {
 									token_arr[token_arr_count - 1] += 2;
 								}
-								if (start[start_idx] == option->Assignment) {
+								if (buffer[start + start_idx] == option->Assignment) {
 									token_arr[token_arr_count - 1] += 3;
 								}
 							}
@@ -707,18 +694,18 @@ namespace wiz {
 					-1 != Equal(*x, option->LineComment)) {
 					token_last = x - 1;
 					last_idx = now_idx - 1;
-					if (token_last >= 0 && token_last - token_first + 1 > 0) {
+					if (token_last - token_first + 1 > 0) {
 						token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 						token_arr_count++;
 						{
 							if (token_last - token_first + 1 == 1) {
-								if (start[start_idx] == option->Left) {
+								if (buffer[start + start_idx] == option->Left) {
 									token_arr[token_arr_count - 1] += 1;
 								}
-								if (start[start_idx] == option->Right) {
+								if (buffer[start + start_idx] == option->Right) {
 									token_arr[token_arr_count - 1] += 2;
 								}
-								if (start[start_idx] == option->Assignment) {
+								if (buffer[start + start_idx] == option->Assignment) {
 									token_arr[token_arr_count - 1] += 3;
 								}
 							}
@@ -771,13 +758,13 @@ namespace wiz {
 
 					{
 						if (last - 1 - token_first + 1 == 1) {
-							if (start[start_idx] == option->Left) {
+							if (buffer[start + start_idx] == option->Left) {
 								token_arr[token_arr_count - 1] += 1;
 							}
-							if (start[start_idx] == option->Right) {
+							if (buffer[start + start_idx] == option->Right) {
 								token_arr[token_arr_count - 1] += 2;
 							}
-							if (start[start_idx] == option->Assignment) {
+							if (buffer[start + start_idx] == option->Assignment) {
 								token_arr[token_arr_count - 1] += 3;
 							}
 						}
@@ -796,6 +783,7 @@ namespace wiz {
 
 			*err = 0;
 			return;
+			*/
 		}
 	};
 
@@ -814,7 +802,8 @@ namespace wiz {
 				case '=':
 				case '\n':
 				case '#':
-					arr[_arr_count] = i + dif; _arr_count += 1;
+					arr[_arr_count] = 1 + i + dif; // after called this function, arr[index] += -1?
+					_arr_count += 1;
 					break;
 				}
 			}
@@ -823,7 +812,7 @@ namespace wiz {
 		}
 
 		static void func(const char* text, const int length, long*& _arr_count, const int thr_num, long long& _arr_count_size) {
-			long* arr = (long*)calloc(length, sizeof(long));// long[length];
+			long* arr = (long*)calloc(length + 2, sizeof(long));// long[length];
 			long* arr_count = new long[thr_num];
 			long* arr_start = new long[thr_num];
 			long count = -2;
@@ -846,10 +835,10 @@ namespace wiz {
 				delete[] thr;
 			}
 			{ // debug
-			//	for (int i = 0; i < length; ++i) {
-			//		std::cout << arr[i] << " ";
-			///	}
-			//	std::cout << "\n";
+				//for (int i = 0; i < length; ++i) {
+				//	std::cout << arr[i] << " ";
+				//}
+				//std::cout << "\n";
 			}
 
 			{
@@ -861,7 +850,7 @@ namespace wiz {
 							--j;
 							break;
 						}
-						arr[_count] = arr[arr_start[i] + k];
+						arr[_count] = arr[arr_start[i] + k] - 1; // chk this.
 						_count++;
 					}
 				}
@@ -869,10 +858,10 @@ namespace wiz {
 			}
 
 			{ // debug
-			//	std::cout << "debug2\n";
-			//	for (int i = 0; i < count; ++i) {
-			//		std::cout << arr[i] << " ";
-			//	}
+				//std::cout << "debug2\n";
+				//for (int i = 0; i < count; ++i) {
+				//	std::cout << arr[i] << " ";
+				//}
 				//std::cout << "\n";
 			}
 
@@ -915,6 +904,11 @@ namespace wiz {
 				}
 
 				count = _count;
+				
+				// odd case. -> error, count must be even!
+				if (count % 2 == 1) {
+					std::cout << "[" << count << "] " << "\"`s num is not even.\n"; //
+				}
 			}
 
 			{ //debug
@@ -975,25 +969,25 @@ namespace wiz {
 
 				for (int i = 1; i < thr_num; ++i) {
 					start[i] = file_length / thr_num * i;
-					/*
+					
 					for (long long x = start[i]; x <= file_length; ++x) {
-						if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
+						if (isWhitespace(buffer[x])) {
 							start[i] = x;
 							break;
 						}
 					}
-					*/
 				}
 				for (int i = 0; i < thr_num - 1; ++i) {
-					last[i] = start[i + 1] - 1;
-				/*	for (long long x = last[i]; x <= file_length; ++x) {
-						if ('\n' == (buffer[x]) || '\0' == buffer[x]) {
+					last[i] = start[i + 1];
+					for (long long x = last[i]; x <= file_length; ++x) {
+						if (isWhitespace(buffer[x])) {
 							last[i] = x;
 							break;
 						}
-					}*/
+					}
 				}
 				last[thr_num - 1] = file_length;
+				
 			}
 			else {
 				inFile.seekg(0, inFile.end);
@@ -1021,9 +1015,43 @@ namespace wiz {
 				std::vector<long long> counter(thr_num, 0);
 				std::vector<int> err(thr_num, 0);
 
+				std::vector<long> count(thr_num, -1); // start_count?
+
+				{
+					long long start_count = 0;
+
+					for (int i = 0; i < thr_num; ++i) {
+						if (i > 0) {
+							start[i] = last[i - 1];
+							if (last[i] < start[i]) {
+								last[i] = start[i];
+							}
+						}
+						for (; start_count < arr_count_size; start_count += 2) {
+							if (start[i] <= arr_count[start_count] && arr_count[start_count] < last[i]) {
+								count[i] = start_count;
+
+								if (last[i] <= arr_count[count[i] + 1]) {
+									last[i] = arr_count[count[i] + 1] + 1;
+								}
+								break;
+							}
+							else if (arr_count[start_count] >= last[i]) {
+								break;
+							}
+						}
+					}
+				}
+
+				{
+				//	for (int i = 0; i < thr_num; ++i) {
+				//		std::cout << start[i] << " " << last[i] << "\n";
+				//	}
+				}
+
 				for (int i = 0; i < thr_num; ++i) {
-					thr[i] = std::thread(Scanner(buffer + start[i], buffer + last[i], &option,
-						token_arr + start[i], start[i], &counter[i], &err[i], buffer, arr_count, arr_count_size));
+					thr[i] = std::thread(Scanner(start[i], last[i], &option,
+						token_arr + start[i], start[i], &counter[i], buffer, &err[i], arr_count, count[i], arr_count_size));
 				}
 
 				for (int i = 0; i < thr_num; ++i) {
@@ -1070,7 +1098,7 @@ namespace wiz {
 				long long len;
 				int err = 0;
 
-				Scanner scanner(buffer + start[0], buffer + last[0], &option, token_arr, start[0], &len, &err, nullptr, nullptr, 0);
+				Scanner scanner(start[0], last[0], &option, token_arr, start[0], &len, buffer, &err, nullptr, 0, 0);
 
 				scanner();
 
@@ -2800,7 +2828,9 @@ namespace wiz {
 
 
 				int b = clock();
-				std::cout << b - a << "\n";
+				std::cout << b - a << "ms\n";
+
+
 				if (!success) {
 					return false;
 				}
