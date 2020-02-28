@@ -1005,6 +1005,14 @@ namespace wiz {
 
 				start[0] = 0;
 				last[0] = file_length;
+
+				{
+					//int a = clock();
+					func(buffer, file_length, arr_count, thr_num, arr_count_size);
+					//int b = clock();
+				//	std::cout << b - a << "ms\n";
+				}
+
 			}
 
 			long long* token_arr = nullptr;
@@ -1099,10 +1107,15 @@ namespace wiz {
 
 				long long len;
 				int err = 0;
+				long long count = 0;
 
-				Scanner scanner(start[0], last[0], &option, token_arr, start[0], &len, buffer, &err, nullptr, 0, 0);
+				Scanner scanner(start[0], last[0], &option, token_arr, start[0], &len, buffer, &err, arr_count, count, arr_count_size);
 
 				scanner();
+				
+				{
+					free(arr_count);//free(arr);
+				}
 
 				switch (err) {
 				case 0:
