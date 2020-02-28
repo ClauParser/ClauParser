@@ -971,7 +971,8 @@ namespace wiz {
 					start[i] = file_length / thr_num * i;
 					
 					for (long long x = start[i]; x <= file_length; ++x) {
-						if (isWhitespace(buffer[x])) {
+						if (isWhitespace(buffer[x]) || '\0' == buffer[x] ||
+								option.Left == buffer[x] || option.Right == buffer[x] || option.Assignment == buffer[x]) {
 							start[i] = x;
 							break;
 						}
@@ -980,7 +981,8 @@ namespace wiz {
 				for (int i = 0; i < thr_num - 1; ++i) {
 					last[i] = start[i + 1];
 					for (long long x = last[i]; x <= file_length; ++x) {
-						if (isWhitespace(buffer[x])) {
+						if (isWhitespace(buffer[x]) || '\0' == buffer[x] ||
+							option.Left == buffer[x] || option.Right == buffer[x] || option.Assignment == buffer[x]) {
 							last[i] = x;
 							break;
 						}
