@@ -811,8 +811,8 @@ namespace wiz {
 			*arr_count = _arr_count;
 		}
 
-		static void func(const char* text, const int length, long long*& _arr_count, const int thr_num, long long& _arr_count_size) {
-			long long* arr = (long long*)calloc(length, sizeof(long long));// long[length];
+		static void func(char* text, const int length, long long*& _arr_count, const int thr_num, long long& _arr_count_size) {
+			long long* arr = (long long*)calloc(length + 1, sizeof(long long));// long[length];, null -> +1
 			long long* arr_count = new long long[thr_num];
 			long long* arr_start = new long long[thr_num];
 			long count = -2;
@@ -868,12 +868,16 @@ namespace wiz {
 			{ // todo - add error check!
 				int _count = 0;
 				int state = 0;
-				for (int i = 0; i < count; ++i) {
+				int line_comment_start = 0;
+
+				arr[count] = length; // text[arr[count]] == '\0'
+				for (int i = 0; i <= count; ++i) {
 					const char ch = text[arr[i]];
 
 					if (0 == state) {
 						if ('#' == ch) {
 							state = 3;
+							line_comment_start = arr[i];
 						}
 						else if ('\"' == ch) {
 							state = 1;
@@ -897,7 +901,11 @@ namespace wiz {
 						state = 1;
 					}
 					else if (3 == state) {
-						if ('\n' == ch) {
+						if ('\n' == ch || '\0' == ch) {
+							for (int j = line_comment_start; j < arr[i]; ++j) {
+								text[j] = ' ';
+							}
+
 							state = 0;
 						}
 					}
