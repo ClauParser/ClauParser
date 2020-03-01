@@ -113,7 +113,7 @@ namespace wiz {
 		long long* arr_count;
 		long long count;
 		long long arr_count_size;
-		char* buffer = 0;
+		char* buffer;
 	public:
 		Scanner(long long start, long long last, const wiz::LoadDataOption* option,
 			long long* token_arr, long long num, long long* token_arr_len, char* buffer, int* err, long long* arr_count, long long count, long long arr_count_size)
@@ -915,7 +915,7 @@ namespace wiz {
 				
 				// odd case. -> error, count must be even!
 				if (count % 2 == 1) {
-					std::cout << "[" << count << "] " << "\"`s num is not even.\n"; //
+					std::cout << "[" << count << "] " << "valid \"`s num is not even.\n"; //
 				}
 			}
 
@@ -2857,7 +2857,13 @@ namespace wiz {
 				if (!success) {
 					return false;
 				}
-				if (token_arr_len <= 0) {
+				if (token_arr_len <= 0) { // delete[] buffer;
+					if (buffer) {
+						delete[] buffer;
+					}
+					if (token_arr) {
+						delete[] token_arr;
+					}
 					return true;
 				}
 			}
