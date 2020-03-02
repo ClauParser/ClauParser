@@ -357,7 +357,7 @@ namespace wiz {
 							start_idx = start_idx + 1;
 						}
 					}
-					else if (0 == state &&
+					/*else if (0 == state &&
 						-1 != Equal(x, option->LineComment)) {
 						token_last = _x - 1;
 						last_idx = now_idx - 1;
@@ -407,6 +407,7 @@ namespace wiz {
 						last_idx = now_idx + 1;
 						continue;
 					}
+					*/
 					else {
 						//
 					}
@@ -799,7 +800,7 @@ namespace wiz {
 				switch (text[i]) {
 				case '\"':
 				case '\\':
-				case '=':
+				//case '=':
 				case '\n':
 				case '#':
 					arr[_arr_count] = 1 + i + dif; // after called this function, arr[index] += -1?
