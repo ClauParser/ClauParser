@@ -408,7 +408,6 @@ namespace wiz {
 	class InFileReserver
 	{
 	private:
-
 		static void _func(const int dif, const char* text, const int length, long long* arr, long long* arr_count) {
 			int _arr_count = 0;
 		
@@ -418,7 +417,7 @@ namespace wiz {
 				case '\\':
 				//case '=':
 				case '\n':
-				case '#':
+				case '#': // line comment start char
 					arr[_arr_count] = 1 + i + dif; // after called this function, arr[index] += -1?
 					_arr_count += 1;
 					break;
@@ -584,7 +583,7 @@ namespace wiz {
 
 				{
 					//int a = clock();
-					func(buffer, file_length, arr_count, thr_num, arr_count_size);
+					func(buffer, file_length, arr_count, thr_num, arr_count_size); // todo - rename
 					//int b = clock();
 				//	std::cout << b - a << "ms\n";
 				}
@@ -2453,7 +2452,7 @@ namespace wiz {
 			return -1;
 		}
 
-		static bool _LoadData(InFileReserver& reserver, UserType& global, const wiz::LoadDataOption& option, const int lex_thr_num, const int parse_num) // first, strVec.empty() must be true!!
+		static bool _LoadData(InFileReserver& reserver, UserType& global, const wiz::LoadDataOption option, const int lex_thr_num, const int parse_num) // first, strVec.empty() must be true!!
 		{
 			const int pivot_num = parse_num - 1;
 			char* buffer = nullptr;
@@ -2618,7 +2617,7 @@ namespace wiz {
 			return true;
 		}
 	public:
-		static bool LoadDataFromFile(const std::string& fileName, UserType& global, int lex_thr_num, int parse_num) /// global should be empty
+		static bool LoadDataFromFile(const std::string& fileName, UserType& global, int lex_thr_num, int parse_thr_num) /// global should be empty
 		{
 			if (lex_thr_num <= 0) {
 				lex_thr_num = std::thread::hardware_concurrency();
@@ -2627,11 +2626,11 @@ namespace wiz {
 				lex_thr_num = 1;
 			}
 
-			if (parse_num <= 0) {
-				parse_num = std::thread::hardware_concurrency();
+			if (parse_thr_num <= 0) {
+				parse_thr_num = std::thread::hardware_concurrency();
 			}
-			if (parse_num <= 0) {
-				parse_num = 1;
+			if (parse_thr_num <= 0) {
+				parse_thr_num = 1;
 			}
 
 			bool success = true;
@@ -2660,7 +2659,7 @@ namespace wiz {
 				ifReserver.Num = 1 << 19;
 				//	strVec.reserve(ifReserver.Num);
 				// cf) empty file..
-				if (false == _LoadData(ifReserver, globalTemp, option, lex_thr_num, parse_num))
+				if (false == _LoadData(ifReserver, globalTemp, option, lex_thr_num, parse_thr_num))
 				{
 					inFile.close();
 					return false; // return true?
