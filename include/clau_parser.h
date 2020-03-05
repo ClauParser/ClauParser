@@ -1,5 +1,4 @@
-﻿
-#ifndef CLAU_PARSER_H
+﻿#ifndef CLAU_PARSER_H
 #define CLAU_PARSER_H
 
 #include <iostream>
@@ -2146,7 +2145,7 @@ namespace wiz {
 			return x & 3;
 		}
 	private:
-		static bool __LoadData(const char* buffer, const long long* token_arr, long long token_arr_len, UserType* _global, const wiz::LoadDataOption* _option,
+		static bool __LoadData(const char* buffer, const long long* token_arr, long long token_arr_len, UserType* _global, const wiz::LoadDataOption option,
 			int start_state, int last_state, UserType** next, int* err)
 		{
 			std::vector<long long> varVec;
@@ -2158,7 +2157,6 @@ namespace wiz {
 			}
 
 			UserType& global = *_global;
-			const wiz::LoadDataOption& option = *_option;
 
 			int state = start_state;
 			int braceNum = 0;
@@ -2526,13 +2524,13 @@ namespace wiz {
 						long long idx = pivots.empty() ? num - 1 : pivots[0];
 						long long _token_arr_len = idx - 0 + 1;
 
-						thr[0] = std::thread(__LoadData, buffer, token_arr, _token_arr_len, &__global[0], &option, 0, 0, &next[0], &err[0]);
+						thr[0] = std::thread(__LoadData, buffer, token_arr, _token_arr_len, &__global[0], option, 0, 0, &next[0], &err[0]);
 					}
 
 					for (int i = 1; i < pivots.size(); ++i) {
 						long long _token_arr_len = pivots[i] - (pivots[i - 1] + 1) + 1;
 
-						thr[i] = std::thread(__LoadData, buffer, token_arr + pivots[i - 1] + 1, _token_arr_len, &__global[i], &option, 0, 0, &next[i], &err[i]);
+						thr[i] = std::thread(__LoadData, buffer, token_arr + pivots[i - 1] + 1, _token_arr_len, &__global[i], option, 0, 0, &next[i], &err[i]);
 
 					}
 
@@ -2540,7 +2538,7 @@ namespace wiz {
 						long long _token_arr_len = num - 1 - (pivots.back() + 1) + 1;
 
 						thr[pivots.size()] = std::thread(__LoadData, buffer, token_arr + pivots.back() + 1, _token_arr_len, &__global[pivots.size()],
-							&option, 0, 0, &next[pivots.size()], &err[pivots.size()]);
+							option, 0, 0, &next[pivots.size()], &err[pivots.size()]);
 					}
 
 					// wait
