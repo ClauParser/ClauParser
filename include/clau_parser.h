@@ -140,11 +140,12 @@ namespace wiz {
 
 				for (long long i = 0; start + i < last; ++i, ++now_idx) {
 					const char x = buffer[start + i];
-					const int _x = start + i;
+					const long long _x = start + i;
 					long long offset = 0;
 					int idx;
 
 					if (arr_count_size > 0 && count >= 0 && count < arr_count_size && _x == arr_count[count]) {
+						/*
 						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
@@ -162,31 +163,32 @@ namespace wiz {
 								}
 							}
 						}
-
-						start_idx = i;
-						token_first = arr_count[count];
+						*/
+						//start_idx = i;
+						//token_first = arr_count[count];
 						token_last = arr_count[count + 1]; // count : even index;
 
 
+						/*
 						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
-						}
+						}*/
 						
-						token_last = token_last + 1;
-						token_first = token_last;
+						//token_last = token_last + 1;
+						//token_first = token_last;
 
 						i += (arr_count[count + 1] - arr_count[count]);
 
 						now_idx = i;
-						start_idx = i + 1;
-						last_idx = i + 1;
+						//start_idx = i + 1;
+						//last_idx = i + 1;
+						last_idx = i;
 
 						count += 2;
-
 						continue;
 					}
-					else if (0 == state && -1 != (idx = Equal(option->Removal, x)))
+					else if ( -1 != (idx = Equal(option->Removal, x)))
 					{
 						token_last = _x - 1;
 						last_idx = now_idx - 1;
@@ -218,7 +220,7 @@ namespace wiz {
 						}
 						continue;
 					}
-					else if (0 == state && -1 != (idx = Equal(option->Assignment, x))) {
+					else if ( -1 != (idx = Equal(option->Assignment, x))) {
 						token_last = _x - 1;
 						last_idx = now_idx - 1;
 
@@ -254,7 +256,7 @@ namespace wiz {
 							start_idx = start_idx + 1;
 						}
 					}
-					else if (0 == state && isWhitespace(x)) { // isspace ' ' \t \r \n , etc... ?
+					else if ( isWhitespace(x)) { // isspace ' ' \t \r \n , etc... ?
 						token_last = _x - 1;
 						last_idx = now_idx - 1;
 						if (token_last - token_first + 1 > 0) {
@@ -285,7 +287,7 @@ namespace wiz {
 							start_idx = start_idx + 1;
 						}
 					}
-					else if (0 == state && -1 != (idx = Equal(option->Left, x))) {
+					else if ( -1 != (idx = Equal(option->Left, x))) {
 						token_last = _x - 1;
 						last_idx = now_idx - 1;
 						if (token_last - token_first + 1 > 0) {
@@ -322,7 +324,7 @@ namespace wiz {
 							start_idx = start_idx + 1;
 						}
 					}
-					else if (0 == state && -1 != (idx = Equal(option->Right, x))) {
+					else if ( -1 != (idx = Equal(option->Right, x))) {
 						token_last = _x - 1;
 						last_idx = now_idx - 1;
 						if (token_last - token_first + 1 > 0) {
@@ -355,9 +357,6 @@ namespace wiz {
 							token_first = token_first + 1;
 							start_idx = start_idx + 1;
 						}
-					}
-					else {
-						//
 					}
 
 					token_last = _x + offset;
