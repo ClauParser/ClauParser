@@ -145,7 +145,7 @@ namespace wiz {
 					int idx;
 
 					if (arr_count_size > 0 && count >= 0 && count < arr_count_size && _x == arr_count[count]) {
-						/*
+						
 						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
@@ -163,28 +163,26 @@ namespace wiz {
 								}
 							}
 						}
-						*/
-						//start_idx = i;
-						//token_first = arr_count[count];
+						
+						start_idx = i;
+						token_first = arr_count[count];
 						token_last = arr_count[count + 1]; // count : even index;
-
-
-						/*
+						
 						if (token_last - token_first + 1 > 0) {
 							token_arr[token_arr_count] = ((start_idx + num) << 32) + ((token_last - token_first + 1) << 2) + 0;
 							token_arr_count++;
-						}*/
+						}
 						
-						//token_last = token_last + 1;
-						//token_first = token_last;
+						token_last = token_last + 1;
+						token_first = token_last;
 
 						i += (arr_count[count + 1] - arr_count[count]);
 
 						now_idx = i;
-						//start_idx = i + 1;
-						//last_idx = i + 1;
-						last_idx = i;
-
+						
+						start_idx = i + 1;
+						last_idx = i + 1;
+						
 						count += 2;
 						continue;
 					}
@@ -485,7 +483,7 @@ namespace wiz {
 				int line_comment_start = 0;
 
 				arr[count] = length; // text[arr[count]] == '\0'
-				for (int i = 0; i <= count; ++i) {
+				for (long long i = 0; i <= count; ++i) {
 					const char ch = text[arr[i]];
 
 					if (0 == state) {
@@ -497,6 +495,32 @@ namespace wiz {
 							state = 1;
 
 							arr[_count] = arr[i];
+
+							// for abc"def"ghi
+							for (long long j = arr[i]; j >= 0; --j) {
+								bool pass = false;
+								switch (text[j]) {
+								case ' ':
+								case '\t':
+								case '\r':
+								case '\n':
+								case '\v':
+								case '\f':
+								case '\0':
+								case '{':
+								case '}':
+								case '=':
+									pass = true;
+									break;
+								}
+								if (pass) {
+									arr[_count] = j + 1;
+									break;
+								}
+								if (0 == j) {
+									arr[_count] = 0;
+								}
+							}
 							_count++;
 						}
 					}
@@ -508,6 +532,29 @@ namespace wiz {
 							state = 0;
 
 							arr[_count] = arr[i];
+
+							for (long long j = arr[i]; j <= length; ++j) {
+								bool pass = false;
+								switch (text[j]) {
+								case ' ':
+								case '\t':
+								case '\r':
+								case '\n':
+								case '\v':
+								case '\f':
+								case '\0':
+								case '{':
+								case '}':
+								case '=':
+									pass = true;
+									break;
+								}
+								if (pass) {
+									arr[_count] = j - 1;
+									break;
+								}
+							}
+
 							_count++;
 						}
 					}
