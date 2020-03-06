@@ -706,14 +706,21 @@ namespace wiz {
 								last[i] = start[i];
 							}
 						}
+						bool pass = false;
 						for (; start_count < arr_count_size; start_count += 2) {
-							if (start[i] <= arr_count[start_count] && arr_count[start_count] < last[i]) {
+							if (!pass && start[i] <= arr_count[start_count] && arr_count[start_count] < last[i]) {
 								count[i] = start_count;
 
 								if (last[i] <= arr_count[count[i] + 1]) {
 									last[i] = arr_count[count[i] + 1] + 1;
 								}
-								break;
+								pass = true;
+							}
+							else if (arr_count[start_count] < last[i]) {
+								if (last[i] <= arr_count[start_count + 1]) {
+									last[i] = arr_count[start_count + 1] + 1;
+									break;
+								}
 							}
 							else if (arr_count[start_count] >= last[i]) {
 								break;
@@ -721,7 +728,6 @@ namespace wiz {
 						}
 					}
 				}
-
 				{
 				//	for (int i = 0; i < thr_num; ++i) {
 				//		std::cout << start[i] << " " << last[i] << "\n";
