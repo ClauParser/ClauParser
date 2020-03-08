@@ -404,14 +404,13 @@ namespace wiz {
 	class InFileReserver
 	{
 	private:
-		static void _func(const int dif, const char* text, const int length, long long* arr, long long* arr_count) {
+		static void _func(const long long dif, const char* text, const long long length, long long* arr, long long* arr_count) {
 			int _arr_count = 0;
 		
-			for (int i = 0; i < length; ++i) {
+			for (long long i = 0; i < length; ++i) {
 				switch (text[i]) {
 				case '\"':
 				case '\\':
-				//case '=':
 				case '\n':
 				case '#': // line comment start char
 					arr[_arr_count] = 1 + i + dif; // after called this function, arr[index] += -1?
@@ -423,11 +422,11 @@ namespace wiz {
 			*arr_count = _arr_count;
 		}
 
-		static void func(char* text, const int length, long long*& _arr_count, const int thr_num, long long& _arr_count_size) {
+		static void preScanning(char* text, const long long length, long long*& _arr_count, const int thr_num, long long& _arr_count_size) {
 			long long* arr = (long long*)calloc(length + 1, sizeof(long long));// long[length];, null -> +1
 			long long* arr_count = new long long[thr_num];
 			long long* arr_start = new long long[thr_num];
-			long count = -2;
+			long long count = -2;
 
 			for (int i = 0; i < thr_num; ++i) {
 				arr_start[i] = length / thr_num * i;
@@ -454,9 +453,9 @@ namespace wiz {
 			}
 
 			{
-				int _count = 0;
+				long long _count = 0;
 				for (int i = 0; i < thr_num; ++i) {
-					for (int j = 0, k = 0; j < arr_count[i]; ++j, ++k) {
+					for (long long j = 0, k = 0; j < arr_count[i]; ++j, ++k) {
 						// pass zero.. 
 						if (0 == arr[arr_start[i] + k]) {
 							--j;
@@ -478,9 +477,9 @@ namespace wiz {
 			}
 
 			{ // todo - add error check!
-				int _count = 0;
+				long long _count = 0;
 				int state = 0;
-				int line_comment_start = 0;
+				long long line_comment_start = 0;
 
 				arr[count] = length; // text[arr[count]] == '\0'
 				for (long long i = 0; i <= count; ++i) {
@@ -559,6 +558,9 @@ namespace wiz {
 						}
 					}
 					else if (2 == state) {
+						if (arr[i] > arr[i - 1] + 1) {
+							--i;
+						}
 						state = 1;
 					}
 					else if (3 == state) {
@@ -577,6 +579,9 @@ namespace wiz {
 				// odd case. -> error, count must be even!
 				if (count % 2 == 1) {
 					std::cout << "[" << count << "] " << "valid \"`s num is not even.\n"; //
+				}
+				if (0 != state) {
+					std::cout << "[" << state << "] state is not zero.\n";
 				}
 			}
 
@@ -628,7 +633,7 @@ namespace wiz {
 
 				{
 					//int a = clock();
-					func(buffer, file_length, arr_count, thr_num, arr_count_size); // todo - rename
+					preScanning(buffer, file_length, arr_count, thr_num, arr_count_size); // todo - rename
 					//int b = clock();
 				//	std::cout << b - a << "ms\n";
 				}
@@ -677,7 +682,7 @@ namespace wiz {
 
 				{
 					//int a = clock();
-					func(buffer, file_length, arr_count, thr_num, arr_count_size);
+					preScanning(buffer, file_length, arr_count, thr_num, arr_count_size);
 					//int b = clock();
 				//	std::cout << b - a << "ms\n";
 				}
