@@ -101,7 +101,30 @@ namespace wiz {
 	class InFileReserver
 	{
 	private:
-		static void _func(const long long dif, const char* text, const long long length, long long* arr, long long* arr_count) {
+		// todo - rename.
+		static long long Get(long long position, long long length, char ch) {
+			long long x = (position << 32) + (length << 2) + 0;
+			
+			if (length != 1) {
+				return x;
+			}
+
+			switch (ch) {
+			case '{':
+				x += 1;
+				break;
+			case '}':
+				x += 2;
+				break;
+			case '=':
+				x += 3;
+				break;
+			}
+
+			return x;
+		}
+
+		static void preScanning(const long long dif, const char* text, const long long length, long long* arr, long long* arr_count) {
 			int _arr_count = 0;
 		
 			for (long long i = 0; i < length; ++i) {
@@ -145,10 +168,10 @@ namespace wiz {
 			{
 				std::thread* thr = new std::thread[thr_num];
 				for (int i = 0; i < thr_num - 1; ++i) {
-					thr[i] = std::thread(_func, length / thr_num * i, text + length / thr_num * i, length / thr_num, arr + length / thr_num * i, arr_count + i);
+					thr[i] = std::thread(preScanning, length / thr_num * i, text + length / thr_num * i, length / thr_num, arr + length / thr_num * i, arr_count + i);
 				}
 				int last_length = length - length / thr_num * (thr_num - 1);
-				thr[thr_num - 1] = std::thread(_func, length / thr_num * (thr_num - 1), text + length / thr_num * (thr_num - 1), last_length, arr + length / thr_num * (thr_num - 1), arr_count + thr_num - 1);
+				thr[thr_num - 1] = std::thread(preScanning, length / thr_num * (thr_num - 1), text + length / thr_num * (thr_num - 1), last_length, arr + length / thr_num * (thr_num - 1), arr_count + thr_num - 1);
 				for (int i = 0; i < thr_num; ++i) {
 					thr[i].join();
 				}
@@ -203,21 +226,8 @@ namespace wiz {
 						if ('#' == ch) {
 							token_last = arr[i] - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = ((token_first) << 32) + ((token_last - token_first + 1) << 2) + 0;
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
-								{
-									if (token_last - token_first + 1 == 1) {
-										if (text[token_first] == '{') {
-											token_arr[token_arr_count - 1] += 1;
-										}
-										if (text[token_first] == '}') {
-											token_arr[token_arr_count - 1] += 2;
-										}
-										if (text[token_first] == '=') {
-											token_arr[token_arr_count - 1] += 3;
-										}
-									}
-								}
 							}
 
 							state = 3;
@@ -228,21 +238,8 @@ namespace wiz {
 						else if (isWhitespace(ch) || '\0' == ch) {
 							token_last = arr[i] - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = ((token_first) << 32) + ((token_last - token_first + 1) << 2) + 0;
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
-								{
-									if (token_last - token_first + 1 == 1) {
-										if (text[token_first] == '{') {
-											token_arr[token_arr_count - 1] += 1;
-										}
-										if (text[token_first] == '}') {
-											token_arr[token_arr_count - 1] += 2;
-										}
-										if (text[token_first] == '=') {
-											token_arr[token_arr_count - 1] += 3;
-										}
-									}
-								}
 							}
 							token_first = arr[i] + 1;
 							token_last = arr[i] + 1;
@@ -250,31 +247,15 @@ namespace wiz {
 						else if ('{' == ch) {
 							token_last = arr[i] - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = ((token_first) << 32) + ((token_last - token_first + 1) << 2) + 0;
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
-								{
-									if (token_last - token_first + 1 == 1) {
-										if (text[token_first] == '{') {
-											token_arr[token_arr_count - 1] += 1;
-										}
-										if (text[token_first] == '}') {
-											token_arr[token_arr_count - 1] += 2;
-										}
-										if (text[token_first] == '=') {
-											token_arr[token_arr_count - 1] += 3;
-										}
-									}
-								}
 							}
 							
 							token_first = arr[i];
 							token_last = arr[i];
 
-							token_arr[token_arr_count] = ((token_first) << 32) + ((token_last - token_first + 1) << 2) + 0;
+							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
-							{
-								token_arr[token_arr_count - 1] += 1;
-							}
 
 							token_first = arr[i] + 1;
 							token_last = arr[i] + 1;
@@ -282,30 +263,14 @@ namespace wiz {
 						else if ('}' == ch) {
 							token_last = arr[i] - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = ((token_first) << 32) + ((token_last - token_first + 1) << 2) + 0;
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
-								{
-									if (token_last - token_first + 1 == 1) {
-										if (text[token_first] == '{') {
-											token_arr[token_arr_count - 1] += 1;
-										}
-										if (text[token_first] == '}') {
-											token_arr[token_arr_count - 1] += 2;
-										}
-										if (text[token_first] == '=') {
-											token_arr[token_arr_count - 1] += 3;
-										}
-									}
-								}
 							}
 							token_first = arr[i];
 							token_last = arr[i];
 
-							token_arr[token_arr_count] = ((token_first) << 32) + ((token_last - token_first + 1) << 2) + 0;
+							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
-							{
-								token_arr[token_arr_count - 1] += 2;
-							}
 
 							token_first = arr[i] + 1;
 							token_last = arr[i] + 1;
@@ -314,30 +279,14 @@ namespace wiz {
 						else if ('=' == ch) {
 							token_last = arr[i] - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = ((token_first) << 32) + ((token_last - token_first + 1) << 2) + 0;
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
-								{
-									if (token_last - token_first + 1 == 1) {
-										if (text[token_first] == '{') {
-											token_arr[token_arr_count - 1] += 1;
-										}
-										if (text[token_first] == '}') {
-											token_arr[token_arr_count - 1] += 2;
-										}
-										if (text[token_first] == '=') {
-											token_arr[token_arr_count - 1] += 3;
-										}
-									}
-								}
 							}
 							token_first = arr[i];
 							token_last = arr[i];
 
-							token_arr[token_arr_count] = ((token_first) << 32) + ((token_last - token_first + 1) << 2) + 0;
+							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
-							{
-								token_arr[token_arr_count - 1] += 3;
-							}
 
 							token_first = arr[i] + 1;
 							token_last = arr[i] + 1;
@@ -394,7 +343,7 @@ namespace wiz {
 		}
 
 
-		static std::pair<bool, int> Scan(std::ifstream& inFile, const int num, bool* isFirst, const wiz::LoadDataOption& option, int thr_num,
+		static std::pair<bool, int> Scan(std::ifstream& inFile, const int num, const wiz::LoadDataOption& option, int thr_num,
 			char*& _buffer, long long* _buffer_len, long long*& _token_arr, long long* _token_arr_len)
 		{
 			if (inFile.eof()) {
@@ -444,7 +393,6 @@ namespace wiz {
 
 	private:
 		std::ifstream* pInFile;
-		bool isFirst;
 	public:
 		int Num;
 	public:
@@ -452,13 +400,12 @@ namespace wiz {
 		{
 			pInFile = &inFile;
 			Num = 1;
-			isFirst = true;
 		}
 		bool end()const { return pInFile->eof(); } //
 	public:
 		bool operator() (const wiz::LoadDataOption& option, int thr_num, char*& buffer, long long* buffer_len, long long*& token_arr, long long* token_arr_len)
 		{
-			bool x = Scan(*pInFile, Num, &isFirst, option, thr_num, buffer, buffer_len, token_arr, token_arr_len).second > 0;
+			bool x = Scan(*pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len).second > 0;
 			return x;
 		}
 	};
@@ -1732,13 +1679,18 @@ namespace wiz {
 	// LoadData
 	class LoadData
 	{
+		static enum {
+			TYPE_LEFT = 1,
+			TYPE_RIGHT = 2,
+			TYPE_ASSIGN = 3
+		};
 	private:
 		static long long check_syntax_error1(long long str, int* err) {
 			long long len = GetLength(str);
 			long long type = GetType(str);
 
-			if (1 == len && (type == 1 || type == 2 ||
-				type == 3)) {
+			if (1 == len && (type == TYPE_LEFT || type == TYPE_RIGHT ||
+				type == TYPE_ASSIGN)) {
 				*err = -4;
 			}
 			return str;
@@ -1862,7 +1814,7 @@ namespace wiz {
 				case 0:
 				{
 					// Left 1
-					if (len == 1 && (-1 != Equal(1, GetType(token_arr[i])) || -1 != Equal(1, GetType(token_arr[i])))) {
+					if (len == 1 && (-1 != Equal(TYPE_LEFT, GetType(token_arr[i])))) {
 						if (!varVec.empty()) {
 							nestedUT[braceNum]->ReserveIList(nestedUT[braceNum]->GetIListSize() + varVec.size());
 							nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
@@ -1896,8 +1848,7 @@ namespace wiz {
 						state = 0;
 					}
 					// Right 2
-					else if (len == 1 && (-1 != Equal(2, GetType(token_arr[i])) || -1 != Equal(2, GetType(token_arr[i])))) {
-						state = 0;
+					else if (len == 1 && (-1 != Equal(TYPE_RIGHT, GetType(token_arr[i])))) {						state = 0;
 
 						if (!varVec.empty()) {
 
@@ -1951,7 +1902,7 @@ namespace wiz {
 						if (x < token_arr + token_arr_len - 1) {
 							long long _len = GetLength(token_arr[i + 1]);
 							// EQ 3
-							if (_len == 1 && -1 != Equal(3, GetType(token_arr[i + 1]))) {
+							if (_len == 1 && -1 != Equal(TYPE_ASSIGN, GetType(token_arr[i + 1]))) {
 								var = token_arr[i];
 
 								state = 1;
@@ -1995,7 +1946,7 @@ namespace wiz {
 				case 1:
 				{
 					// LEFT 1
-					if (len == 1 && (-1 != Equal(1, GetType(token_arr[i])) || -1 != Equal(1, GetType(token_arr[i])))) {
+					if (len == 1 && (-1 != Equal(TYPE_LEFT, GetType(token_arr[i])))) {
 						nestedUT[braceNum]->ReserveIList(nestedUT[braceNum]->GetIListSize() + varVec.size());
 						nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
 
@@ -2080,17 +2031,6 @@ namespace wiz {
 			return true;
 		}
 
-		static bool __STR(const long long token) {
-			return GetType(token) == 0; // General (not {, }, =)
-		}
-		static bool __LEFT(const long long token) {
-			return GetType(token) == 1;
-		}
-		static bool __RIGHT(const long long token) {
-			return GetType(token) == 2;
-		}
-
-
 
 		static long long FindDivisionPlace(const char* buffer, const long long* token_arr, long long start, long long last, const wiz::LoadDataOption& option)
 		{
@@ -2099,15 +2039,15 @@ namespace wiz {
 				long long val = GetType(token_arr[a]);
 
 
-				if (len == 1 && (-1 != Equal(2, val) || -1 != Equal(2, val))) { // right
+				if (len == 1 && (-1 != Equal(TYPE_RIGHT, val))) { // right
 					return a;
 				}
 
 				bool pass = false;
-				if (len == 1 && (-1 != Equal(1, val) || -1 != Equal(1, val))) { // left
+				if (len == 1 && (-1 != Equal(TYPE_LEFT, val))) { // left
 					return a;
 				}
-				else if (len == 1 && -1 != Equal(3, val)) { // assignment
+				else if (len == 1 && -1 != Equal(TYPE_ASSIGN, val)) { // assignment
 					//
 					pass = true;
 				}
@@ -2116,7 +2056,7 @@ namespace wiz {
 					long long len = GetLength(token_arr[a + 1]);
 					long long val = GetType(token_arr[a + 1]);
 
-					if (!(len == 1 && -1 != Equal(3, val))) // assignment
+					if (!(len == 1 && -1 != Equal(TYPE_ASSIGN, val))) // assignment
 					{ // NOT
 						return a;
 					}
@@ -2146,7 +2086,7 @@ namespace wiz {
 				if (!success) {
 					return false;
 				}
-				if (token_arr_len <= 0) { // delete[] buffer;
+				if (token_arr_len <= 0) { 
 					if (buffer) {
 						delete[] buffer;
 					}
