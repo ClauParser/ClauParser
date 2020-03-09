@@ -1,0 +1,68 @@
+﻿  main.cpp
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(134,48): warning C4244: '초기화 중': '__int64'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(136,47): warning C4244: '인수': '__int64'에서 'size_t'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(150,21): warning C4244: '초기화 중': '__int64'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(420,35): warning C4244: '초기화 중': '__int64'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(796,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(813,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(850,26): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(886,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(906,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(910,28): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(933,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(937,28): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(951,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(958,28): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(974,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(988,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(995,28): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1020,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1030,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1044,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1054,28): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1074,23): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1083,23): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1311,24): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1335,31): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1359,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1403,30): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1452,30): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1493,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1556,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1607,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1629,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1653,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1669,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1691,22): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1871,72): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1871,94): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1871,86): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1872,45): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1872,67): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1872,59): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1909,73): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1909,95): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1909,87): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1910,46): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1910,68): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1910,60): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(1944,21): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2003,71): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2003,93): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2003,85): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2004,44): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2004,66): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2004,58): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2013,96): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2060,69): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2060,91): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2060,83): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2061,42): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2061,64): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2061,56): warning C4244: '인수': '__int64'에서 'const unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2180,24): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2205,24): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2220,24): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2224,24): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\include\clau_parser.h(2261,25): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+  ClauParser.vcxproj -> C:\Users\vztpv\Desktop\ClauParser-master\ClauParser-master\ClauParser\Debug\ClauParser.exe
