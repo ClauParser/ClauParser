@@ -1,4 +1,5 @@
-# ClauParser  [![Build status](https://ci.appveyor.com/api/projects/status/eq8cfklovioh7fj9?svg=true)](https://ci.appveyor.com/project/vztpv/clauparser)
+# ClauParser  [![Build status](https://ci.appveyor.com/api/projects/status/eq8cfklovioh7fj9?svg=true)](https://ci.appveyor.com/project/vztpv/clauparser)[![Total alerts](https://img.shields.io/lgtm/alerts/g/ClauText/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauText/ClauParser/alerts/)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/ClauText/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauText/ClauParser/alerts/)
 My Own "Parallel Parser" for "Paradox Game Data" (clausewitz engine or jomini engine)
 
 #
