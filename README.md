@@ -1,4 +1,4 @@
-# ClauParser
+# ClauParser  [![Build status](https://ci.appveyor.com/api/projects/status/eq8cfklovioh7fj9?svg=true)](https://ci.appveyor.com/project/vztpv/clauparser)
 My Own "Parallel Parser" for "Paradox Game Data" (clausewitz engine or jomini engine)
 
 #
