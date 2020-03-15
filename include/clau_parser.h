@@ -156,27 +156,27 @@ namespace wiz {
 			
 			long long* token_arr = new long long[length + 1];
 			long long token_arr_size = 0;
-			long long* arr = (long long*)calloc(length + 1, sizeof(long long));// long[length];, null -> +1
-			long long* arr_count = new long long[thr_num];
-			long long* arr_start = new long long[thr_num];
+		//	long long* arr = (long long*)calloc(length + 1, sizeof(long long));// long[length];, null -> +1
+			//long long* arr_count = new long long[thr_num];
+			//long long* arr_start = new long long[thr_num];
 			long long count = -2;
 
-			for (int i = 0; i < thr_num; ++i) {
-				arr_start[i] = length / thr_num * i;
-			}
+			//for (int i = 0; i < thr_num; ++i) {
+			//	arr_start[i] = length / thr_num * i;
+			//}
 			
 			{
-				std::thread* thr = new std::thread[thr_num];
-				for (int i = 0; i < thr_num - 1; ++i) {
-					thr[i] = std::thread(preScanning, length / thr_num * i, text + length / thr_num * i, length / thr_num, arr + length / thr_num * i, arr_count + i);
-				}
-				int last_length = length - length / thr_num * (thr_num - 1);
-				thr[thr_num - 1] = std::thread(preScanning, length / thr_num * (thr_num - 1), text + length / thr_num * (thr_num - 1), last_length, arr + length / thr_num * (thr_num - 1), arr_count + thr_num - 1);
-				for (int i = 0; i < thr_num; ++i) {
-					thr[i].join();
-				}
-
-				delete[] thr;
+			//	std::thread* thr = new std::thread[thr_num];
+			//	for (int i = 0; i < thr_num - 1; ++i) {
+				//	thr[i] = std::thread(preScanning, length / thr_num * i, text + length / thr_num * i, length / thr_num, arr + length / thr_num * i, arr_count + i);
+				//}
+				//int last_length = length - length / thr_num * (thr_num - 1);
+				//thr[thr_num - 1] = std::thread(preScanning, length / thr_num * (thr_num - 1), text + length / thr_num * (thr_num - 1), last_length, arr + length / thr_num * (thr_num - 1), arr_count + thr_num - 1);
+				//for (int i = 0; i < thr_num; ++i) {
+				//	thr[i].join();
+				//}
+//
+			//	delete[] thr;
 			}
 			{ // debug
 				//for (int i = 0; i < length; ++i) {
@@ -186,19 +186,19 @@ namespace wiz {
 			}
 
 			{
-				long long _count = 0;
-				for (int i = 0; i < thr_num; ++i) {
-					for (long long j = 0, k = 0; j < arr_count[i]; ++j, ++k) {
-						// pass zero.. 
-						if (0 == arr[arr_start[i] + k]) {
-							--j;
-							break;
-						}
-						arr[_count] = arr[arr_start[i] + k] - 1; // chk this.
-						_count++;
-					}
-				}
-				count = _count;
+			//	long long _count = 0;
+			//	for (int i = 0; i < thr_num; ++i) {
+			//		for (long long j = 0, k = 0; j < arr_count[i]; ++j, ++k) {
+			//			// pass zero.. 
+			//			if (0 == arr[arr_start[i] + k]) {
+			//				--j;
+			//				break;
+			//			}
+			//			arr[_count] = arr[arr_start[i] + k] - 1; // chk this.
+			//			_count++;
+			//		}
+			//	}
+			//	count = _count;
 			}
 
 			{ // debug
@@ -218,13 +218,13 @@ namespace wiz {
 				
 				long long token_arr_count = 0;
 
-				arr[count] = length; // text[arr[count]] == '\0'
-				for (long long i = 0; i <= count; ++i) {
-					const char ch = text[arr[i]];
+				//arr[count] = length; // text[arr[count]] == '\0'
+				for (long long i = 0; i <= length; ++i) {
+					const char ch = text[i];
 
 					if (0 == state) {
 						if ('#' == ch) {
-							token_last = arr[i] - 1;
+							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
 								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
@@ -236,60 +236,60 @@ namespace wiz {
 							state = 1;
 						}
 						else if (isWhitespace(ch) || '\0' == ch) {
-							token_last = arr[i] - 1;
+							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
 								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
-							token_first = arr[i] + 1;
-							token_last = arr[i] + 1;
+							token_first = i + 1;
+							token_last = i + 1;
 						}
 						else if ('{' == ch) {
-							token_last = arr[i] - 1;
+							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
 								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
 							
-							token_first = arr[i];
-							token_last = arr[i];
+							token_first =i;
+							token_last = i;
 
 							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 
-							token_first = arr[i] + 1;
-							token_last = arr[i] + 1;
+							token_first = i + 1;
+							token_last = i + 1;
 						}
 						else if ('}' == ch) {
-							token_last = arr[i] - 1;
+							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
 								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
-							token_first = arr[i];
-							token_last = arr[i];
+							token_first = i;
+							token_last = i;
 
 							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 
-							token_first = arr[i] + 1;
-							token_last = arr[i] + 1;
+							token_first = i + 1;
+							token_last = i + 1;
 
 						}
 						else if ('=' == ch) {
-							token_last = arr[i] - 1;
+							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
 								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
-							token_first = arr[i];
-							token_last = arr[i];
+							token_first = i;
+							token_last = i;
 
 							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 
-							token_first = arr[i] + 1;
-							token_last = arr[i] + 1;
+							token_first = i + 1;
+							token_last = i+ 1;
 						}
 					}
 					else if (1 == state) {
@@ -301,17 +301,17 @@ namespace wiz {
 						}
 					}
 					else if (2 == state) {
-						if (arr[i] > arr[i - 1] + 1) {
-							--i;
-						}
+						//if (arr[i] > arr[i - 1] + 1) {
+						//--i;
+						//}
 						state = 1;
 					}
 					else if (3 == state) {
 						if ('\n' == ch || '\0' == ch) {
 							state = 0;
 
-							token_first = arr[i] + 1;
-							token_last = arr[i] + 1;
+							token_first = i + 1;
+							token_last = i + 1;
 						}
 					}
 				}
@@ -336,9 +336,9 @@ namespace wiz {
 				_token_arr = token_arr;
 				_token_arr_size = token_arr_size;
 
-				delete[] arr_start;
-				delete[] arr_count;
-				free(arr);
+				//delete[] arr_start;
+				//delete[] arr_count;
+				//free(arr);
 			}
 		}
 
