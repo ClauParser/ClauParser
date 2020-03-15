@@ -15,25 +15,7 @@ now, Only ANSI is Supported.
 
 
 
-This Parser suppose that "quoted string" has no enter key ('\n') for parallel Lexing(Scanning).
-
-
-
-for example,
-
-"multi
-
-line
-
-string" is not supported.
-
-
-
-but, "not multi \n line \n string" is supported. // check \\ n
-
-
-
-And, Following is supported Data File Example.
+Following is supported Data File Example.
 
 #line comment
 
