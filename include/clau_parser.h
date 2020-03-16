@@ -104,7 +104,7 @@ namespace wiz {
 		// todo - rename.
 		static long long Get(long long position, long long length, char ch) {
 			long long x = (position << 32) + (length << 2) + 0;
-			
+
 			if (length != 1) {
 				return x;
 			}
@@ -124,106 +124,25 @@ namespace wiz {
 			return x;
 		}
 
-		static void preScanning(const long long dif, const char* text, const long long length, long long* arr, long long* arr_count) {
-			int _arr_count = 0;
-		
-			for (long long i = 0; i < length; ++i) {
-				switch (text[i]) {
-				case ' ':
-				case '\t':
-				case '\r':
-				case '\n':
-				case '\v':
-				case '\f':
-				case '\"':
-				case '\\':
-				case '=':
-				case '{':
-				case '}':
-				case '#': // line comment start char
-					arr[_arr_count] = 1 + i + dif; // after called this function, arr[index] += -1?
-					_arr_count++;
-					break;
-				}
-			}
-			
-			*arr_count = _arr_count;
-		}
-
 		static void Scanning(char* text, const long long length,
-			const int thr_num, 
-			long long*& _token_arr, long long& _token_arr_size) {
-			
+			long long*& _token_arr, long long& _token_arr_size, const LoadDataOption& option) {
+
 			long long* token_arr = new long long[length + 1];
 			long long token_arr_size = 0;
-		//	long long* arr = (long long*)calloc(length + 1, sizeof(long long));// long[length];, null -> +1
-			//long long* arr_count = new long long[thr_num];
-			//long long* arr_start = new long long[thr_num];
-			long long count = -2;
-
-			//for (int i = 0; i < thr_num; ++i) {
-			//	arr_start[i] = length / thr_num * i;
-			//}
-			
-			{
-			//	std::thread* thr = new std::thread[thr_num];
-			//	for (int i = 0; i < thr_num - 1; ++i) {
-				//	thr[i] = std::thread(preScanning, length / thr_num * i, text + length / thr_num * i, length / thr_num, arr + length / thr_num * i, arr_count + i);
-				//}
-				//int last_length = length - length / thr_num * (thr_num - 1);
-				//thr[thr_num - 1] = std::thread(preScanning, length / thr_num * (thr_num - 1), text + length / thr_num * (thr_num - 1), last_length, arr + length / thr_num * (thr_num - 1), arr_count + thr_num - 1);
-				//for (int i = 0; i < thr_num; ++i) {
-				//	thr[i].join();
-				//}
-//
-			//	delete[] thr;
-			}
-			{ // debug
-				//for (int i = 0; i < length; ++i) {
-				//	std::cout << arr[i] << " ";
-				//}
-				//std::cout << "\n";
-			}
-
-			{
-			//	long long _count = 0;
-			//	for (int i = 0; i < thr_num; ++i) {
-			//		for (long long j = 0, k = 0; j < arr_count[i]; ++j, ++k) {
-			//			// pass zero.. 
-			//			if (0 == arr[arr_start[i] + k]) {
-			//				--j;
-			//				break;
-			//			}
-			//			arr[_count] = arr[arr_start[i] + k] - 1; // chk this.
-			//			_count++;
-			//		}
-			//	}
-			//	count = _count;
-			}
-
-			{ // debug
-				//std::cout << "debug2\n";
-				//for (int i = 0; i < count; ++i) {
-				//	std::cout << arr[i] << " ";
-				//}
-				//std::cout << "\n";
-			}
-
-			{ // todo - add error check!
-				long long _count = 0;
+		
+			{ 
 				int state = 0;
 
 				long long token_first = 0;
 				long long token_last = -1;
-				
+
 				long long token_arr_count = 0;
 
-				//arr[count] = length; // text[arr[count]] == '\0'
 				for (long long i = 0; i <= length; ++i) {
 					const char ch = text[i];
 
 					if (0 == state) {
-						if ('#' == ch) {
+						if (option.LineComment == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
 								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
@@ -244,14 +163,14 @@ namespace wiz {
 							token_first = i + 1;
 							token_last = i + 1;
 						}
-						else if ('{' == ch) {
+						else if (option.Left == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
 								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
-							
-							token_first =i;
+
+							token_first = i;
 							token_last = i;
 
 							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
@@ -260,7 +179,7 @@ namespace wiz {
 							token_first = i + 1;
 							token_last = i + 1;
 						}
-						else if ('}' == ch) {
+						else if (option.Right == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
 								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
@@ -276,7 +195,7 @@ namespace wiz {
 							token_last = i + 1;
 
 						}
-						else if ('=' == ch) {
+						else if (option.Assignment == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
 								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
@@ -289,7 +208,7 @@ namespace wiz {
 							token_arr_count++;
 
 							token_first = i + 1;
-							token_last = i+ 1;
+							token_last = i + 1;
 						}
 					}
 					else if (1 == state) {
@@ -301,9 +220,6 @@ namespace wiz {
 						}
 					}
 					else if (2 == state) {
-						//if (arr[i] > arr[i - 1] + 1) {
-						//--i;
-						//}
 						state = 1;
 					}
 					else if (3 == state) {
@@ -318,27 +234,14 @@ namespace wiz {
 
 				token_arr_size = token_arr_count;
 
-				count = _count;
-				
 				if (0 != state) {
 					std::cout << "[" << state << "] state is not zero.\n";
 				}
 			}
 
-			{ //debug
-				//for (int i = 0; i < count; ++i) {
-				//	std::cout << arr[i] << " ";
-				//}
-				//std::cout << "\n";
-			}
-
 			{
 				_token_arr = token_arr;
 				_token_arr_size = token_arr_size;
-
-				//delete[] arr_start;
-				//delete[] arr_count;
-				//free(arr);
 			}
 		}
 
@@ -355,9 +258,6 @@ namespace wiz {
 
 			std::string temp;
 			char* buffer = nullptr;
-			std::vector<long long> start(thr_num + 1, 0);
-			std::vector<long long> last(thr_num + 1, 0);
-			std::vector<long long> token_arr_len(thr_num + 1, 0);
 			long long file_length;
 
 			{
@@ -378,7 +278,7 @@ namespace wiz {
 					long long* token_arr;
 					long long token_arr_size;
 
-					Scanning(buffer, file_length, thr_num, token_arr, token_arr_size); // todo - rename
+					Scanning(buffer, file_length, token_arr, token_arr_size, option); 
 					//int b = clock();
 				//	std::cout << b - a << "ms\n";
 					_buffer = buffer;
@@ -1848,7 +1748,8 @@ namespace wiz {
 						state = 0;
 					}
 					// Right 2
-					else if (len == 1 && (-1 != Equal(TYPE_RIGHT, GetType(token_arr[i])))) {						state = 0;
+					else if (len == 1 && (-1 != Equal(TYPE_RIGHT, GetType(token_arr[i])))) {
+						state = 0;
 
 						if (!varVec.empty()) {
 
@@ -2065,7 +1966,7 @@ namespace wiz {
 			return -1;
 		}
 
-		static bool _LoadData(InFileReserver& reserver, UserType& global,  wiz::LoadDataOption option, const int lex_thr_num, const int parse_num) // first, strVec.empty() must be true!!
+		static bool _LoadData(InFileReserver& reserver, UserType& global, wiz::LoadDataOption option, const int lex_thr_num, const int parse_num) // first, strVec.empty() must be true!!
 		{
 			const int pivot_num = parse_num - 1;
 			char* buffer = nullptr;
@@ -2086,7 +1987,7 @@ namespace wiz {
 				if (!success) {
 					return false;
 				}
-				if (token_arr_len <= 0) { 
+				if (token_arr_len <= 0) {
 					if (buffer) {
 						delete[] buffer;
 					}
