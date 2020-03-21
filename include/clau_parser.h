@@ -1876,7 +1876,7 @@ namespace wiz {
 	// LoadData
 	class LoadData
 	{
-		static enum {
+		enum {
 			TYPE_LEFT = 1, // 01
 			TYPE_RIGHT = 2, // 10
 			TYPE_ASSIGN = 3 // 11
