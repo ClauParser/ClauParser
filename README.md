@@ -1,7 +1,4 @@
-# ClauParser  [![Build status](https://ci.appveyor.com/api/projects/status/eq8cfklovioh7fj9?svg=true)](https://ci.appveyor.com/project/vztpv/clauparser)[![Total alerts](https://img.shields.io/lgtm/alerts/g/ClauParser/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauParser/ClauParser/alerts/)HTML
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/ClauParser/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauParser/ClauParser/context:cpp)
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/ClauParser/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauParser/ClauParser/context:cpp)
-
+# ClauParser  [![Build status](https://ci.appveyor.com/api/projects/status/eq8cfklovioh7fj9?svg=true)](https://ci.appveyor.com/project/vztpv/clauparser)[![Total alerts](https://img.shields.io/lgtm/alerts/g/ClauParser/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauParser/ClauParser/alerts/)[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/ClauParser/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauParser/ClauParser/context:cpp)
 
 My Own "Parallel Parser" for "Paradox Game Data" (clausewitz engine or jomini engine)
 
