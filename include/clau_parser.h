@@ -298,13 +298,12 @@ namespace wiz {
 			}
 		}
 
-		static void ScanningNew(char* text, const long long length,
+		static void ScanningNew(char* text, const long long length, const int thr_num,
 			long long*& _token_arr, long long& _token_arr_size, const LoadDataOption& option)
 		{
-			const int thr_num = 8;
-			std::thread thr[thr_num];
-			long long start[thr_num];
-			long long last[thr_num];
+			std::vector<std::thread> thr(thr_num);
+			std::vector<long long> start(thr_num);
+			std::vector<long long> last(thr_num);
 
 			{
 				start[0] = 0;
@@ -337,7 +336,7 @@ namespace wiz {
 			long long* tokens = new long long[length + 1];
 			long long token_count = 0;
 
-			long long token_arr_size[thr_num];
+			std::vector<long long> token_arr_size(thr_num);
 
 			for (int i = 0; i < thr_num; ++i) {
 				thr[i] = std::thread(_Scanning, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]), option);
@@ -570,7 +569,13 @@ namespace wiz {
 					long long* token_arr;
 					long long token_arr_size;
 
-					ScanningNew(buffer, file_length, token_arr, token_arr_size, option); 
+					if (thr_num == 1) {
+						Scanning(buffer, file_length, token_arr, token_arr_size, option);
+					}
+					else {
+						ScanningNew(buffer, file_length, thr_num, token_arr, token_arr_size, option);
+					}
+
 					//int b = clock();
 				//	std::cout << b - a << "ms\n";
 					_buffer = buffer;
