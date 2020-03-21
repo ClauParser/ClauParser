@@ -1,4 +1,7 @@
-# ClauParser  [![Build status](https://ci.appveyor.com/api/projects/status/eq8cfklovioh7fj9?svg=true)](https://ci.appveyor.com/project/vztpv/clauparser)[![Total alerts](https://img.shields.io/lgtm/alerts/g/ClauText/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauText/ClauParser/alerts/)[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/ClauText/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauText/ClauParser/context:cpp)
+# ClauParser  [![Build status](https://ci.appveyor.com/api/projects/status/eq8cfklovioh7fj9?svg=true)](https://ci.appveyor.com/project/vztpv/clauparser)[![Total alerts](https://img.shields.io/lgtm/alerts/g/ClauParser/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauParser/ClauParser/alerts/)HTML
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/ClauParser/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauParser/ClauParser/context:cpp)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/ClauParser/ClauParser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ClauParser/ClauParser/context:cpp)
+
 
 My Own "Parallel Parser" for "Paradox Game Data" (clausewitz engine or jomini engine)
 
@@ -35,7 +38,7 @@ test = 1 test2 = { 3 4 5 6 7 }
 
 And Principle of Loading Data From File Parallel (Simply)
 
-Lexing(Scanning) : split data by '\n', Scanning Parallel, Merge Tokens.
+Lexing(Scanning) : // split data by '\n', Scanning Parallel, Merge Tokens.
 
 Parsing : split data by (including) '{', '}', val in var = val, val in val, Parsing(make tree) Parallel and Merge Trees.
 
