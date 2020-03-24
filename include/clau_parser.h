@@ -102,23 +102,21 @@ namespace wiz {
 	{
 	private:
 		// todo - rename.
-		static long long Get(long long position, long long length, char ch) {
+		static long long Get(long long position, long long length, char ch, const wiz::LoadDataOption& option) {
 			long long x = (position << 32) + (length << 3) + 0;
 
 			if (length != 1) {
 				return x;
 			}
 
-			switch (ch) {
-			case '{':
+			if (option.Left == ch) {
 				x += 2; // 010
-				break;
-			case '}':
+			}
+			else if (option.Right == ch) {
 				x += 4; // 100
-				break;
-			case '=':
-				x += 6; // 110
-				break;
+			}
+			else if (option.Assignment == ch) {
+				x += 6;
 			}
 
 			return x;
@@ -158,7 +156,7 @@ namespace wiz {
 						
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 						}
 
@@ -170,7 +168,7 @@ namespace wiz {
 						
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch);
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
 							token_arr_count++;
 						}
 
@@ -178,14 +176,14 @@ namespace wiz {
 					else if ('\\' == ch) {
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch);
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
 							token_arr_count++;
 						}
 					}
 					else if ('\n' == ch) {
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -193,14 +191,14 @@ namespace wiz {
 						
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch);
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
 							token_arr_count++;
 						}
 					}
 					else if ('\0' == ch) {
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -208,14 +206,14 @@ namespace wiz {
 						
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch);
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
 							token_arr_count++;
 						}
 					}
 					else if (option.LineComment == ch) {
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -223,7 +221,7 @@ namespace wiz {
 						
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch);
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
 							token_arr_count++;
 						}
 
@@ -231,7 +229,7 @@ namespace wiz {
 					else if (isWhitespace(ch)) {
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -240,14 +238,14 @@ namespace wiz {
 					else if (option.Left == ch) {
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 						}
 
 						token_first = i;
 						token_last = i;
 
-						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 						token_arr_count++;
 
 						token_first = i + 1;
@@ -256,13 +254,13 @@ namespace wiz {
 					else if (option.Right == ch) {
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 						}
 						token_first = i;
 						token_last = i;
 
-						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 						token_arr_count++;
 
 						token_first = i + 1;
@@ -272,13 +270,13 @@ namespace wiz {
 					else if (option.Assignment == ch) {
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 						}
 						token_first = i;
 						token_last = i;
 
-						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first]);
+						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 						token_arr_count++;
 
 						token_first = i + 1;
@@ -287,7 +285,7 @@ namespace wiz {
 				}
 
 				if (length-1 - token_first + 1 > 0) {
-					token_arr[num + token_arr_count] = Get(token_first + num, length-1 - token_first + 1, text[token_first]);
+					token_arr[num + token_arr_count] = Get(token_first + num, length-1 - token_first + 1, text[token_first], option);
 					token_arr_count++;
 				}
 				token_arr_size = token_arr_count;
@@ -388,7 +386,7 @@ namespace wiz {
 
 							len = GetIdx(tokens[i]) - idx + 1;
 
-							tokens[real_token_arr_count] = Get(idx, len, type);
+							tokens[real_token_arr_count] = Get(idx, len, type, option);
 							real_token_arr_count++;
 						}
 					}
@@ -407,6 +405,13 @@ namespace wiz {
 					real_token_arr_count++;
 				}
 			}
+
+			{
+				if (0 != state) {
+					std::cout << "[ERRROR] state [" << state << "] is not zero \n";
+				}
+			}
+
 
 			{
 				_token_arr = tokens;
@@ -436,7 +441,7 @@ namespace wiz {
 						if (option.LineComment == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
 								token_arr_count++;
 							}
 
@@ -448,7 +453,7 @@ namespace wiz {
 						else if (isWhitespace(ch) || '\0' == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
 								token_arr_count++;
 							}
 							token_first = i + 1;
@@ -457,14 +462,14 @@ namespace wiz {
 						else if (option.Left == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
 								token_arr_count++;
 							}
 
 							token_first = i;
 							token_last = i;
 
-							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
+							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 
 							token_first = i + 1;
@@ -473,13 +478,13 @@ namespace wiz {
 						else if (option.Right == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
 								token_arr_count++;
 							}
 							token_first = i;
 							token_last = i;
 
-							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
+							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 
 							token_first = i + 1;
@@ -489,13 +494,13 @@ namespace wiz {
 						else if (option.Assignment == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
 								token_arr_count++;
 							}
 							token_first = i;
 							token_last = i;
 
-							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first]);
+							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
 
 							token_first = i + 1;
