@@ -628,7 +628,10 @@ namespace wiz {
 		bool IsFail() const { // change body
 			return "" == name;
 		}
-		const std::string& GetName()const {
+		std::string& GetName() {
+			return name;
+		}
+		const std::string& GetName() const {
 			return name;
 		}
 		void SetName(const std::string& name)
@@ -766,6 +769,14 @@ namespace wiz {
 			inited = ta.inited;
 			return;
 		}
+
+		Type* ToType() {
+			return this;
+		}
+		const Type* ToType()const {
+			return this;
+		}
+
 	};
 
 	class UserType : public Type {
@@ -844,6 +855,13 @@ namespace wiz {
 		const ItemType<std::string>& GetItemList(const int idx) const { return itemList[idx]; }
 		UserType*& GetUserTypeList(const int idx) { return userTypeList[idx]; }
 		const UserType*& GetUserTypeList(const int idx) const { return const_cast<const UserType*&>(userTypeList[idx]); }
+
+		Type* ToType() {
+			return this;
+		}
+		const Type* ToType()const {
+			return this;
+		}
 
 		bool IsItemList(const int idx) const
 		{
