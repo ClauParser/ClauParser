@@ -891,7 +891,8 @@ namespace wiz {
 			ilist.clear();
 			userTypeList.clear();
 
-			// todo?
+			sortedItemList.clear();
+			sortedUserTypeList.clear();
 		}
 
 		void SetParent(UserType* other)
@@ -1728,7 +1729,7 @@ namespace wiz {
 						//	stream << "\t";
 						//}
 						if (ut->itemList[itemListCount].GetName() != "")
-							stream << ut->itemList[itemListCount].GetName() << " = ";
+							stream << ut->itemList[itemListCount].GetName() << " : ";
 						stream << ut->itemList[itemListCount].Get(j);
 						if (j != ut->itemList[itemListCount].size() - 1)
 							stream << " ";
@@ -1742,7 +1743,7 @@ namespace wiz {
 					// std::cout << "UserTypeList" << endl;
 					if (ut->userTypeList[userTypeListCount]->GetName() != "")
 					{
-						stream << ut->userTypeList[userTypeListCount]->GetName() << " = ";
+						stream << ut->userTypeList[userTypeListCount]->GetName() << " ";
 					}
 					stream << "{\n";
 
@@ -1764,6 +1765,10 @@ namespace wiz {
 	public:
 		void Save1(std::ostream& stream, int depth = 0) const {
 			Save1(stream, this, depth);
+		}
+
+		void Save2(std::ostream& stream, int depth = 0) const {
+			Save2(stream, this, depth);
 		}
 
 		std::string ItemListToString()const
@@ -2519,6 +2524,7 @@ namespace wiz {
 
 			return true;
 		}
+
 		static bool LoadWizDB(UserType& global, const std::string& fileName, const int thr_num) {
 			UserType globalTemp = UserType("global");
 
@@ -2546,6 +2552,28 @@ namespace wiz {
 
 			/// saveFile
 			global.Save1(outFile); // cf) friend
+
+			outFile.close();
+
+			return true;
+		}
+
+		static bool SaveWizDB2(const UserType& global, const std::string& fileName, const bool append = false) {
+			std::ofstream outFile;
+			if (fileName.empty()) { return false; }
+			if (false == append) {
+				outFile.open(fileName);
+				if (outFile.fail()) { return false; }
+			}
+			else {
+				outFile.open(fileName, std::ios::app);
+				if (outFile.fail()) { return false; }
+
+				outFile << "\n";
+			}
+
+			/// saveFile
+			global.Save2(outFile); // cf) friend
 
 			outFile.close();
 
