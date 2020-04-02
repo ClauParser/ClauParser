@@ -67,10 +67,9 @@ namespace wiz {
 	class LoadDataOption
 	{
 	public:
-		char LineComment = '#';	// # 
-		char Left = '{', Right = '}';	// { }
-		char Assignment = '=';	// = 
-		char Removal = ' ';		// ',' 
+		const char LineComment = '#';	// # 
+		const char Left = '{', Right = '}';	// { }
+		const char Assignment = '=';	// = 
 	};
 
 	inline bool isWhitespace(const char ch)
@@ -152,8 +151,8 @@ namespace wiz {
 				for (long long i = 0; i < length; ++i) {
 					const char ch = text[i];
 
-					if ('\"' == ch) {
-						
+					switch (ch) {
+					case '\"':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
@@ -165,37 +164,71 @@ namespace wiz {
 
 						token_first = i + 1;
 						token_last = i + 1;
-						
+
+						{//
+							token_arr[num + token_arr_count] = 1;
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+							token_arr_count++;
+						}
+						break;
+					case '\\':
+					{//
+						token_arr[num + token_arr_count] = 1;
+						token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+						token_arr_count++;
+					}
+					break;
+					case '\n':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+						token_first = i + 1;
+						token_last = i + 1;
+
+						{//
+							token_arr[num + token_arr_count] = 1;
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+							token_arr_count++;
+						}
+						break;
+					case '\0':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+						token_first = i + 1;
+						token_last = i + 1;
+
+						{//
+							token_arr[num + token_arr_count] = 1;
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+							token_arr_count++;
+						}
+						break;
+					case '#':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+						token_first = i + 1;
+						token_last = i + 1;
+
 						{//
 							token_arr[num + token_arr_count] = 1;
 							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
 							token_arr_count++;
 						}
 
-					}
-					else if ('\\' == ch) {
-						{//
-							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
-							token_arr_count++;
-						}
-					}
-					else if ('\n' == ch) {
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-							token_arr_count++;
-						}
-						token_first = i + 1;
-						token_last = i + 1;	
-						
-						{//
-							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
-							token_arr_count++;
-						}
-					}
-					else if ('\0' == ch) {
+						break;
+					case ' ':
+					case '\t':
+					case '\r':
+					case '\v':
+					case '\f':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
@@ -203,39 +236,9 @@ namespace wiz {
 						}
 						token_first = i + 1;
 						token_last = i + 1;
-						
-						{//
-							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
-							token_arr_count++;
-						}
-					}
-					else if (option.LineComment == ch) {
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-							token_arr_count++;
-						}
-						token_first = i + 1;
-						token_last = i + 1;
-						
-						{//
-							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
-							token_arr_count++;
-						}
 
-					}
-					else if (isWhitespace(ch)) {
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-							token_arr_count++;
-						}
-						token_first = i + 1;
-						token_last = i + 1;
-					}
-					else if (option.Left == ch) {
+						break;
+					case '{':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
@@ -250,8 +253,8 @@ namespace wiz {
 
 						token_first = i + 1;
 						token_last = i + 1;
-					}
-					else if (option.Right == ch) {
+						break;
+					case '}':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
@@ -265,9 +268,8 @@ namespace wiz {
 
 						token_first = i + 1;
 						token_last = i + 1;
-
-					}
-					else if (option.Assignment == ch) {
+						break;
+					case '=':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
@@ -281,6 +283,7 @@ namespace wiz {
 
 						token_first = i + 1;
 						token_last = i + 1;
+						break;
 					}
 				}
 
@@ -920,7 +923,8 @@ namespace wiz {
 		mutable bool useSortedItemList = false;
 		mutable bool useSortedUserTypeList = false;
 	public:
-		explicit UserType(std::string&& name) : Type(move(name)), parent(nullptr) { }
+		explicit UserType(const char* str, size_t len) : Type(std::string(str, len)), parent(nullptr) { }
+		explicit UserType(std::string&& name) : Type(std::move(name)), parent(nullptr) { }
 		explicit UserType(const std::string& name = "") : Type(name), parent(nullptr) { }
 		UserType(const UserType& ut) : Type(ut.GetName()) {
 			Reset(ut);  // Initial
@@ -965,6 +969,11 @@ namespace wiz {
 				userTypeList.push_back(new UserType(*ut.userTypeList[i]));
 				userTypeList.back()->parent = this;
 			}
+
+
+
+			sortedItemList.clear();
+			sortedUserTypeList.clear();
 		}
 		void Reset2(UserType&& ut) {
 			ilist = std::move(ut.ilist);
@@ -984,6 +993,13 @@ namespace wiz {
 				userTypeList.back()->parent = this;
 			}
 			ut.userTypeList.clear();
+
+
+			sortedItemList.clear();
+			sortedUserTypeList.clear();
+
+			ut.sortedItemList.clear();
+			ut.sortedUserTypeList.clear();
 		}
 
 		void _Remove()
@@ -1379,6 +1395,13 @@ namespace wiz {
 				userTypeList.reserve(offset);
 			}
 		}
+		void AddItem(const char* str1, size_t len1, const char* str2, size_t len2) {
+			itemList.emplace_back(std::string(str1, len1), std::string(str2, len2));
+			ilist.push_back(1);
+
+			useSortedItemList = false;
+		}
+
 		void AddItem(std::string&& name, std::string&& item) {
 			itemList.emplace_back(std::move(name), std::move(item));
 			ilist.push_back(1);
@@ -1405,7 +1428,8 @@ namespace wiz {
 			useSortedItemList = false;
 		}
 		void AddUserTypeItem(UserType&& item) {
-			UserType* temp = new UserType(std::move(item));
+			UserType* temp = new UserType(std::move(item.GetName()));
+
 			temp->parent = this;
 
 			ilist.push_back(2);
@@ -1413,6 +1437,21 @@ namespace wiz {
 			userTypeList.push_back(temp);
 
 			useSortedUserTypeList = false;
+			useSortedItemList = false;
+			
+
+			{
+				temp->itemList = std::move(item.itemList);
+				temp->ilist = std::move(item.ilist);
+				temp->userTypeList = std::move(item.userTypeList);
+
+				for (int i = 0; i < item.GetUserTypeListSize(); ++i) {
+					item.userTypeList[i] = nullptr;
+				}
+				for (int i = 0; i < temp->GetUserTypeListSize(); ++i) {
+					temp->userTypeList[i]->parent = temp;
+				}
+			}
 		}
 		void AddUserTypeItem(const UserType& item) {
 			UserType* temp = new UserType(item);
@@ -2044,9 +2083,9 @@ namespace wiz {
 							nestedUT[braceNum]->ReserveIList(nestedUT[braceNum]->GetIListSize() + varVec.size());
 							nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
 
-							for (long long x = 0; x < varVec.size(); ++x) {
-								nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
-									std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
+							for (long long x = 0; x < varVec.size(); ++x) { 
+								nestedUT[braceNum]->AddItem(buffer + GetIdx(varVec[x]), GetLength(varVec[x]),
+									buffer + GetIdx(valVec[x]), GetLength(valVec[x]));
 							}
 
 							varVec.clear();
@@ -2083,8 +2122,8 @@ namespace wiz {
 								nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
 
 								for (long long x = 0; x < varVec.size(); ++x) {
-									nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
-										std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
+									nestedUT[braceNum]->AddItem(buffer + GetIdx(varVec[x]), GetLength(varVec[x]),
+										buffer + GetIdx(valVec[x]), GetLength(valVec[x]));
 								}
 							}
 
@@ -2094,7 +2133,7 @@ namespace wiz {
 
 						if (braceNum == 0) {
 							UserType ut;
-							ut.AddUserTypeItem(UserType("#")); // json -> "var_name" = val  // clautext, # is line comment delimiter.
+							ut.AddUserTypeItem(UserType("#", 1)); // json -> "var_name" = val  // clautext, # is line comment delimiter.
 							UserType* pTemp = nullptr;
 							ut.GetLastUserTypeItemRef(pTemp);
 							int utCount = 0;
@@ -2177,8 +2216,8 @@ namespace wiz {
 						nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
 
 						for (long long x = 0; x < varVec.size(); ++x) {
-							nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
-								std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
+							nestedUT[braceNum]->AddItem(buffer + GetIdx(varVec[x]), GetLength(varVec[x]),
+								buffer + GetIdx(valVec[x]), GetLength(valVec[x]));
 						}
 
 
@@ -2187,7 +2226,7 @@ namespace wiz {
 
 						///
 						{
-							nestedUT[braceNum]->AddUserTypeItem(UserType(std::string(buffer + GetIdx(var), GetLength(var))));
+							nestedUT[braceNum]->AddUserTypeItem(UserType(buffer + GetIdx(var), GetLength(var)));
 							UserType* pTemp = nullptr;
 							nestedUT[braceNum]->GetLastUserTypeItemRef(pTemp);
 							var = 0;
@@ -2234,8 +2273,8 @@ namespace wiz {
 				nestedUT[braceNum]->ReserveItemList(nestedUT[braceNum]->GetItemListSize() + varVec.size());
 
 				for (long long x = 0; x < varVec.size(); ++x) {
-					nestedUT[braceNum]->AddItem(std::string(buffer + GetIdx(varVec[x]), GetLength(varVec[x])),
-						std::string(buffer + GetIdx(valVec[x]), GetLength(valVec[x])));
+					nestedUT[braceNum]->AddItem(buffer + GetIdx(varVec[x]), GetLength(varVec[x]),
+						buffer + GetIdx(valVec[x]), GetLength(valVec[x]));
 				}
 
 
@@ -2496,11 +2535,6 @@ namespace wiz {
 
 				InFileReserver ifReserver(inFile);
 				wiz::LoadDataOption option;
-				option.Assignment = ('=');
-				option.Left = '{';
-				option.Right = '}';
-				option.LineComment = ('#');
-				option.Removal = ' '; // ','
 
 				char* buffer = nullptr;
 				ifReserver.Num = 1 << 19;
