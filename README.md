@@ -11,7 +11,7 @@ Loading Data Parallel From Paradox Game Data File(50MB) take 460 ~ 850 ms in my 
 
 
 
-now, Only ANSI is Supported.
+now, Only ANSI is Supported. 
 
 
 
