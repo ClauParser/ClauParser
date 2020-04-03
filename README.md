@@ -5,7 +5,7 @@ My Own "Parallel Parser" for "Paradox Game Data" (clausewitz engine or jomini en
 # 
 Load Data Parallel From Paradox Game Data File ( especially "save game" )and Create, Read, Update, Delete Data, and Save Data to File.
 
-
+ 
 
 Loading Data Parallel From Paradox Game Data File(50MB) take 460 ~ 850 ms in my computer.(Intel i7 8th gen cpu - 4 core 8 thread,, ssd)
 
