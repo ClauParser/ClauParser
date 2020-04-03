@@ -1303,7 +1303,7 @@ namespace wiz {
 
 			itemList.emplace_back("", std::string(""));
 
-			if (itemIndex != -1) {
+			if (!err) {
 				for (size_t  i = itemList.size() - 1; i > itemIndex; --i) {
 					itemList[i] = std::move(itemList[i - 1]);
 				}
