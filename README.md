@@ -2,7 +2,7 @@
 
 My Own "Parallel Parser" for "Paradox Game Data" (clausewitz engine or jomini engine)
 
-#
+# 
 Load Data Parallel From Paradox Game Data File ( especially "save game" )and Create, Read, Update, Delete Data, and Save Data to File.
 
 
