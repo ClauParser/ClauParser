@@ -138,7 +138,6 @@ namespace wiz {
 		static void _Scanning(char* text, long long num, const long long length,
 			long long*& token_arr, long long&  _token_arr_size, const LoadDataOption& option) {
 
-
 			long long token_arr_size = 0;
 
 			{
@@ -821,6 +820,9 @@ namespace wiz {
 					left = middle + 1;
 				}
 				else {
+					if (0 == middle) {
+						break;
+					}
 					right = middle - 1;
 				}
 
@@ -847,11 +849,15 @@ namespace wiz {
 					left = middle + 1;
 				}
 				else {
+					if (0 == middle) {
+						break;
+					}
 					right = middle - 1;
 				}
 
 				middle = (left + right) / 2;
 			}
+			
 			err = true;
 			return -1;
 		}
@@ -2063,6 +2069,7 @@ namespace wiz {
 		static bool __LoadData(const char* buffer, const long long* token_arr, long long token_arr_len, UserType* _global, const wiz::LoadDataOption* _option,
 			int start_state, int last_state, UserType** next, int* err)
 		{
+
 			std::vector<long long> varVec;
 			std::vector<long long> valVec;
 
@@ -2370,7 +2377,7 @@ namespace wiz {
 
 
 				int b = clock();
-				std::cout << b - a << "ms\n";
+				std::cout << "scan " << b - a << "ms\n";
 
 			//	{
 			//		for (long long i = 0; i < token_arr_len; ++i) {
