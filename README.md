@@ -16,20 +16,20 @@ now, Only ANSI is Supported.
 
 
 Following is supported Data File Example.
+#
+    #line comment
 
-#line comment
+    EU4Game
 
-EU4Game
+    Countries = {
 
-Countries = {
+        -1 = {
 
--1 = {
+            test = 1 test2 = { 3 4 5 6 7 }
 
-test = 1 test2 = { 3 4 5 6 7 }
+       }
 
-}
-
-}
+    }
 
 
 
