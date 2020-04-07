@@ -3,13 +3,13 @@
 주로 특정한 게임데이터 형식을 가진다.
 #
 	EU4Game  
-   	# line comment
-    	countries = {
-        	-1 = {
-            	name = "USA"
-            	core = { 1 2 3 } # array?
-        	}
-    	}
+	# line comment
+	countries = {
+		-1 = {
+			name = "USA"
+			core = { 1 2 3 } # array?
+		}
+	}
 요런걸 소개해보고자 합니다.
 
 
@@ -36,11 +36,11 @@
 #  
 Token을 어떻게 구현할지도 속도 차이가 생기는 것 같습니다.
 #
-    class Token {
-    public:
-	std::string str;
-	int type;
-    }
+	    class Token {
+	    public:
+		std::string str;
+		int type;
+	    }
 요렇게 std::string을 쓰는 방법 C++ 스럽다? 라고 할 수 도 있겠지만, 경험상? 속도가 생각보다 느려지는 것 같습니다.
 #
     class Token {
