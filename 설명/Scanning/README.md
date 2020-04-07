@@ -1,6 +1,6 @@
+#
 패러독스(게임회사)의 게임(clausewitz엔진으로 개발된)의 데이터 파일은
 주로 특정한 게임데이터 형식을 가진다.
-#
 	EU4Game  
    	# line comment
     	countries = {
@@ -9,16 +9,18 @@
             	core = { 1 2 3 } # array?
         	}
     	}
+요런걸 소개해보고자 합니다.
 
-요런걸 소개해보고자 합니다.스캐닝을하기전에? 파일에서 데이터를 읽어와야겠죠?
+
 #
+스캐닝을하기전에? 파일에서 데이터를 읽어와야겠죠?
+
 	std::ifstream inFile("input.txt");
 	std::vector<std::string> result;
 	std::string line;
 	while (std::getline(inFile, line)) {
 		result.push_back(line);
 	}
-    
 요렇게하면 안됩니다. 병렬스캐닝+병렬파싱하는 시간보다 더 오래 걸렸던것 같습니다.
 #
 	std::ifstream inFile("input.txt", std::ios::binary);
@@ -28,8 +30,10 @@
 	inFile.read(buffer, file_length);
 	buffer[file_length] = '\0';
     
+    
+    
+#  
 Token을 어떻게 구현할지도 속도 차이가 생기는 것 같습니다.
-#
     class Token {
     public:
 	std::string str;
@@ -43,15 +47,16 @@ Token을 어떻게 구현할지도 속도 차이가 생기는 것 같습니다.
         int len; // length of token
         int type;
     };
-그래서 이런 방법으로 바꾸어봤습니다. 그리고 Token를 std::vector를 이용해 저장한다면
+그래서 이런 방법으로 바꾸어봤습니다. 
 #
+그리고 Token를 std::vector를 이용해 저장한다면
     std::vector<Token> tokens;
     tokens.reserve(file_length / 2 + 1);
     for (int i = 0; i < file_length / 4; ++i) {
         tokens.push_back(Token());
     }
-그런데 Token대신 long long이라는 타입으로 대체한다고 생각해봅시다.
 #
+그런데 Token대신 long long이라는 타입으로 대체한다고 생각해봅시다.
     std::vector<long long> tokens;
     tokens.reserve(file_length / 2 + 1);
     for (int i = 0; i < file_length / 4; ++i) {
