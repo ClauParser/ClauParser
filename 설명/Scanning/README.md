@@ -70,3 +70,61 @@ Token쓴 것보다 long long쓴 것이 속도가 더 빠릅니다.
 그리고 잘 생각해보면 게임 데이터의 용량이 많아야 파일당 100MB이내이기 때문에,
 long long(64bit) = token 시작 위치 (32bit) + token 길이(32-2bit) + token type(2bit, { } = 일반문자열) 으로
 Token를 클래스가 아니라 long long타입으로 나타낼 수 있을 것 같습니다.
+#
+	long long Get(long long position, long long length, char ch, const wiz::LoadDataOption& option)
+#
+Sequential Scanning.
+#
+	int state = 0; 
+
+	long long token_first = 0;  // 토큰 시작위치
+	long long token_last = -1;  // 토큰 끝위치
+
+	long long token_arr_count = 0;
+#
+	for (long long i = 0; i <= length; ++i) { // text[length] 에는 '\0'이 들어 있다.
+		const char ch = text[i];
+
+#
+#
+	else if (isWhitespace(ch) || '\0' == ch) {
+		token_last = i - 1;
+		if (token_last - token_first + 1 > 0) { // 이전(앞의?) 토큰을 추가 한다.
+			// token_arr : long long 배열.
+			token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
+			token_arr_count++;
+		}
+		token_first = i + 1;
+		token_last = i + 1;
+	}
+#
+	else if (option.Right == ch) {
+		token_last = i - 1;
+		if (token_last - token_first + 1 > 0) { // 이전(앞의?) 토큰을 추가한다.
+			token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
+			token_arr_count++;
+		}
+		token_first = i;
+		token_last = i;
+		
+		// 현재 } (Right)를 토큰 배열에 추가한다.
+		token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
+		token_arr_count++;
+
+		token_first = i + 1;
+		token_last = i + 1;
+
+	}
+#
+line comment를 시작하는 #를 만나면 state가 3이되고 state가 3이면서 엔터키나 '\0'를 만나면 주석이 종료됨.
+#
+	else if (3 == state) {
+		if ('\n' == ch || '\0' == ch) {
+			state = 0;
+
+			token_first = i + 1;
+			token_last = i + 1;
+		}
+	}
+#
+주의사항 : Scanning함수에는 abc"ddd eee"fgh 를 하나의 토큰으로 간주함.
