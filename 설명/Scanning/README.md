@@ -158,7 +158,7 @@ line comment를 시작하는 #를 만나면 state가 3이되고 state가 3이면
 	long long qouted_start;
 	long long slush_start;
 
-	for (long long i = 0; i < token_count; ++i) { // 전체 크기만큼이아니라  토큰 후보? 개수만큼 반복한다!
+	for (long long i = 0; i < token_count; ++i) { // 전체 크기만큼이 아니라  토큰 후보? 개수만큼 반복한다!
 		const long long len = GetLength(tokens[i]);
 		const char ch = text[GetIdx(tokens[i])];
 		const long long idx = GetIdx(tokens[i]);
