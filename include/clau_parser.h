@@ -385,7 +385,6 @@ namespace wiz {
 						{
 							long long idx = GetIdx(tokens[qouted_start]);
 							long long len = GetLength(tokens[qouted_start]);
-							long long type = GetType(tokens[qouted_start]);
 
 							len = GetIdx(tokens[i]) - idx + 1;
 
@@ -403,7 +402,7 @@ namespace wiz {
 						state = 0;
 					}
 				}
-				else if (0 == state && !('\n' == ch || '\0' == ch)) { // '\\' case?
+				else if (0 == state) { // '\\' case?
 					tokens[real_token_arr_count] = tokens[i];
 					real_token_arr_count++;
 				}
@@ -611,6 +610,8 @@ namespace wiz {
 		bool operator() (const wiz::LoadDataOption& option, int thr_num, char*& buffer, long long* buffer_len, long long*& token_arr, long long* token_arr_len)
 		{
 			bool x = Scan(*pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len).second > 0;
+			
+		//	std::cout << *token_arr_len << "\n";
 			return x;
 		}
 	};
