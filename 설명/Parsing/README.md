@@ -26,9 +26,12 @@ Sequential Parsing.
         -> var = val, state = 0
 #
 Sequential Parsing에서 VirutalNode가 생기면 text가 unvalid하다는 뜻. ex) { } } {
- 또한 일반? 문자열이 와야할 var, val에  { } = 이 오면 역시 text가 unvalid(문법에 어긋나는?) 한 경우이다.
+
+또한 일반? 문자열이 와야할 var, val에  { } = 이 오면 역시 text가 unvalid(문법에 어긋나는?) 한 경우이다.
 
 #
 사실 ClauParer에서 Sequential Parsing을 하든 Parallel Parsing을 하든 위의 알고리즘?를 이용한다.
+
  즉, 단순히 동시에 여러개를 돌리는 것일뿐이다. 다만, 동작전이나 동작후에 에러처리나 토큰 나누기 등 여러가지 코드를 
+ 
 추가할 필요가 있다. 
