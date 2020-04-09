@@ -25,7 +25,10 @@ Sequential Parsing.
     else if state == 1
         -> var = val, state = 0
 #
-Sequential Parsing에서 VirutalNode가 생기면 text가 unvalid하다는 뜻. ex) { } } {
+Sequential Parsing에서 VirutalNode가 생기면 text가 unvalid하다는 뜻. ex) { } }
+
+그리고 파싱하고난후 stack의 size가 1보다 커도 text가 valid하지않다는 뜻이다.
+
 
 또한 일반? 문자열이 와야할 var, val에  { } = 이 오면 역시 text가 unvalid(문법에 어긋나는?) 한 경우이다.
 
