@@ -21,7 +21,7 @@ Sequential Parsing.
     else if state == 0
         -> val
     else if state == 1 && now char is LEFT( { )
-        -> make UserType, state = 0
+        -> make UserType, stack.push(made UserType), state = 0
     else if state == 1
         -> var = val, state = 0
 #
