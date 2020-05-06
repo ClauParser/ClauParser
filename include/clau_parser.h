@@ -376,6 +376,8 @@ namespace wiz {
 				_token_arr_size = token_arr_size;
 			}
 		}
+		
+	
 
 		static void ScanningNew(char* text, const long long length, const int thr_num,
 			long long*& _token_arr, long long& _token_arr_size, const LoadDataOption& option)
@@ -416,7 +418,7 @@ namespace wiz {
 			long long token_count = 0;
 
 			std::vector<long long> token_arr_size(thr_num);
-
+		
 			for (int i = 0; i < thr_num; ++i) {
 				thr[i] = std::thread(_Scanning, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]), option);
 			}
@@ -425,67 +427,61 @@ namespace wiz {
 				thr[i].join();
 			}
 
-			{
-				long long _count = 0;
-				for (int i = 0; i < thr_num; ++i) {
-					for (long long j = 0; j < token_arr_size[i]; ++j) {
-						tokens[token_count] = tokens[start[i] + j];
-						token_count++;
-					}
-				}
-			}
-
 			int state = 0;
 			long long qouted_start;
 			long long slush_start;
 
-			for (long long i = 0; i < token_count; ++i) {
-				const long long len = GetLength(tokens[i]);
-				const char ch = text[GetIdx(tokens[i])];
-				const long long idx = GetIdx(tokens[i]);
-				const bool isToken2 = IsToken2(tokens[i]);
+			for (long long t = 0; t < thr_num; ++t) {
+				for (long long j = 0; j < token_arr_size[t]; ++j) {
+					const long long i = start[t] + j;
 
-				if (isToken2) {
-					if (0 == state && '\"' == ch) {
-						state = 1;
-						qouted_start = i;
-					}
-					else if (0 == state && option.LineComment == ch) {
-						state = 2;
-					}
-					else if (1 == state && '\\' == ch) {
-						state = 3;
-						slush_start = idx;
-					}
-					else if (1 == state && '\"' == ch) {
-						state = 0;
+					const long long len = GetLength(tokens[i]);
+					const char ch = text[GetIdx(tokens[i])];
+					const long long idx = GetIdx(tokens[i]);
+					const bool isToken2 = IsToken2(tokens[i]);
 
-						{
-							long long idx = GetIdx(tokens[qouted_start]);
-							long long len = GetLength(tokens[qouted_start]);
+					if (isToken2) {
+						if (0 == state && '\"' == ch) {
+							state = 1;
+							qouted_start = i;
+						}
+						else if (0 == state && option.LineComment == ch) {
+							state = 2;
+						}
+						else if (1 == state && '\\' == ch) {
+							state = 3;
+							slush_start = idx;
+						}
+						else if (1 == state && '\"' == ch) {
+							state = 0;
 
-							len = GetIdx(tokens[i]) - idx + 1;
+							{
+								long long idx = GetIdx(tokens[qouted_start]);
+								long long len = GetLength(tokens[qouted_start]);
 
-							tokens[real_token_arr_count] = Get(idx, len, text[idx], option);
-							real_token_arr_count++;
+								len = GetIdx(tokens[i]) - idx + 1;
+
+								tokens[real_token_arr_count] = Get(idx, len, text[idx], option);
+								real_token_arr_count++;
+							}
+						}
+						else if (3 == state) {
+							if (idx != slush_start + 1) {
+								--j; // --i;
+							}
+							state = 1;
+						}
+						else if (2 == state && ('\n' == ch || '\0' == ch)) {
+							state = 0;
 						}
 					}
-					else if (3 == state) {
-						if (idx != slush_start + 1) {
-							--i;
-						}
-						state = 1;
+					else if (0 == state) { // 
+						tokens[real_token_arr_count] = tokens[i];
+						real_token_arr_count++;
 					}
-					else if (2 == state && ('\n' == ch || '\0' == ch)) {
-						state = 0;
-					}
-				}
-				else if (0 == state) { // '\\' case?
-					tokens[real_token_arr_count] = tokens[i];
-					real_token_arr_count++;
 				}
 			}
-
+			
 			{
 				if (0 != state) {
 					std::cout << "[ERRROR] state [" << state << "] is not zero \n";
@@ -701,7 +697,7 @@ namespace wiz {
 	};
 
 	class Type {
-	private:
+	protected:
 		std::string name;
 
 	public:
@@ -1048,29 +1044,103 @@ namespace wiz {
 			Reset2(std::move(ut));
 			return;
 		}
+		class Wrap {
+		public:
+			UserType* ut = nullptr;
+			size_t idx = 0;
+			size_t max = 0;
+		public:
+			Wrap() {
+				//
+			}
+			Wrap(UserType* ut) :
+				ut(ut)
+			{
+				max = ut->GetUserTypeListSize();
+			}
+		};
+		class Wrap2 {
+		public:
+			const UserType* ut = nullptr;
+			size_t idx = 0;
+			size_t max = 0;
+		public:
+			Wrap2() {
+				//
+			}
+			Wrap2(const UserType* ut) :
+				ut(ut)
+			{
+				max = ut->GetUserTypeListSize();
+			}
+		};
+
+		static void Delete(void* ptr) {
+			std::vector<Wrap> _stack;
+			_stack.push_back(Wrap((UserType*)ptr));
+
+			while (!_stack.empty()) {
+				if (_stack.back().idx >= _stack.back().max) {
+					_stack.back().ut->userTypeList.clear();
+					delete _stack.back().ut;
+
+					_stack.pop_back();
+					if (_stack.empty()) {
+						break;
+					}
+					_stack.back().idx++;
+					continue;
+				}
+
+				_stack.push_back(Wrap(_stack.back().ut->GetUserTypeList(_stack.back().idx)));
+			}
+		}
+
 	private:
 		void Reset(const UserType& ut) {
-			ilist = ut.ilist;
-			itemList = ut.itemList;
+			std::vector<UserType*> _stack;
+			std::vector<Wrap2> _stack2;
 
-			//sortedItemList = ut.sortedItemList;
-			//sortedUserTypeList = ut.sortedUserTypeList;
+			_stack.push_back(this);
+			_stack2.push_back(Wrap2((const UserType*)&ut));
 
-			useSortedItemList = false; // ut.useSortedItemList;
-			useSortedUserTypeList = false; //ut.useSortedUserTypeList;
+			while (!_stack2.empty()) {
+				if (_stack2.back().idx >= _stack2.back().max) {
+					{
+						_stack.back()->sortedItemList.clear();
+						_stack.back()->sortedUserTypeList.clear();
+						_stack.back()->name = _stack2.back().ut->name;
+						_stack.back()->ilist = _stack2.back().ut->ilist;
+						_stack.back()->itemList = _stack2.back().ut->itemList;
+						_stack.back()->useSortedItemList = false; // ut.useSortedItemList;
+						_stack.back()->useSortedUserTypeList = false; //ut.useSortedUserTypeList;
+					}
 
+					{
+						UserType* child = _stack.back();
 
-			userTypeList.reserve(ut.userTypeList.size());
+						_stack.pop_back();
 
-			for (size_t i = 0; i < ut.userTypeList.size(); ++i) {
-				userTypeList.push_back(new UserType(*ut.userTypeList[i]));
-				userTypeList.back()->parent = this;
+						if (!_stack.empty()) {
+							_stack.back()->LinkUserType(child);
+						}
+					}
+
+					_stack2.pop_back();
+					if (_stack2.empty()) {
+						break;
+					}
+					_stack2.back().idx++;
+					continue;
+				}
+
+				{
+					UserType* child = new UserType(_stack2.back().ut->GetName());
+					_stack.push_back(child);
+				}
+				_stack2.push_back(Wrap2(_stack2.back().ut->GetUserTypeList(_stack2.back().idx)));
+				_stack.back()->ReserveUserTypeList(_stack2.back().ut->GetUserTypeListSize());
 			}
-
-
-
-			sortedItemList.clear();
-			sortedUserTypeList.clear();
 		}
 		void Reset2(UserType&& ut) {
 			ilist = std::move(ut.ilist);
@@ -1310,7 +1380,7 @@ namespace wiz {
 		void RemoveUserTypeList() {
 			for (size_t i = 0; i < userTypeList.size(); i++) {
 				if (nullptr != userTypeList[i]) {
-					delete userTypeList[i]; //
+					Delete(userTypeList[i]); //
 					userTypeList[i] = nullptr;
 				}
 			}
@@ -2071,6 +2141,7 @@ namespace wiz {
 			if (1 == len && (type == TYPE_LEFT || type == TYPE_RIGHT ||
 				type == TYPE_ASSIGN)) {
 				*err = -4;
+				std::cout << "err " << type << "\n";
 			}
 			return str;
 		}
