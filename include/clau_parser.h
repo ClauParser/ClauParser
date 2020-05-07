@@ -772,7 +772,7 @@ namespace wiz {
 		}
 	public:
 		explicit ItemType()
-			: Type("", 1), inited(false) { }
+			: Type("", 0), inited(false) { }
 		explicit ItemType(const std::string& name, const T& value, const bool valid = true)
 			:Type(name, valid), data(value), inited(true)
 		{
