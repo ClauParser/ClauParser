@@ -6,7 +6,7 @@
 #include <set>
 #include <stack>
 #include <string>
-
+#include <cstring>
 #include <fstream>
 
 #include <algorithm>
@@ -226,143 +226,145 @@ namespace wiz {
 
 				long long token_arr_count = 0;
 
-				for (long long i = 0; i < length; ++i) {
-					const char ch = text[i];
+				for (long long i = 0; i < length; i = i + 1) {						
 
-					switch (ch) {
-					case '\"':
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-							token_arr_count++;
-						}
+						const char ch = text[i];
+						
+						switch (ch) {
+						case '\"':
+							token_last = i - 1;
+							if (token_last - token_first + 1 > 0) {
+								token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+								token_arr_count++;
+							}
 
-						token_first = i;
-						token_last = i;
+							token_first = i;
+							token_last = i;
 
-						token_first = i + 1;
-						token_last = i + 1;
+							token_first = i + 1;
+							token_last = i + 1;
 
+							{//
+								token_arr[num + token_arr_count] = 1;
+								token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+								token_arr_count++;
+							}
+							break;
+						case '\\':
 						{//
 							token_arr[num + token_arr_count] = 1;
 							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
 							token_arr_count++;
 						}
 						break;
-					case '\\':
-					{//
-						token_arr[num + token_arr_count] = 1;
-						token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
-						token_arr_count++;
-					}
-					break;
-					case '\n':
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
+						case '\n':
+							token_last = i - 1;
+							if (token_last - token_first + 1 > 0) {
+								token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+								token_arr_count++;
+							}
+							token_first = i + 1;
+							token_last = i + 1;
+
+							{//
+								token_arr[num + token_arr_count] = 1;
+								token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+								token_arr_count++;
+							}
+							break;
+						case '\0':
+							token_last = i - 1;
+							if (token_last - token_first + 1 > 0) {
+								token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+								token_arr_count++;
+							}
+							token_first = i + 1;
+							token_last = i + 1;
+
+							{//
+								token_arr[num + token_arr_count] = 1;
+								token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+								token_arr_count++;
+							}
+							break;
+						case '#':
+							token_last = i - 1;
+							if (token_last - token_first + 1 > 0) {
+								token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+								token_arr_count++;
+							}
+							token_first = i + 1;
+							token_last = i + 1;
+
+							{//
+								token_arr[num + token_arr_count] = 1;
+								token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+								token_arr_count++;
+							}
+
+							break;
+						case ' ':
+						case '\t':
+						case '\r':
+						case '\v':
+						case '\f':
+							token_last = i - 1;
+							if (token_last - token_first + 1 > 0) {
+								token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+								token_arr_count++;
+							}
+							token_first = i + 1;
+							token_last = i + 1;
+
+							break;
+						case '{':
+							token_last = i - 1;
+							if (token_last - token_first + 1 > 0) {
+								token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+								token_arr_count++;
+							}
+
+							token_first = i;
+							token_last = i;
+
 							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
-						}
-						token_first = i + 1;
-						token_last = i + 1;
 
-						{//
-							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
-							token_arr_count++;
-						}
-						break;
-					case '\0':
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
+							token_first = i + 1;
+							token_last = i + 1;
+							break;
+						case '}':
+							token_last = i - 1;
+							if (token_last - token_first + 1 > 0) {
+								token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+								token_arr_count++;
+							}
+							token_first = i;
+							token_last = i;
+
 							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
-						}
-						token_first = i + 1;
-						token_last = i + 1;
 
-						{//
-							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
-							token_arr_count++;
-						}
-						break;
-					case '#':
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
+							token_first = i + 1;
+							token_last = i + 1;
+							break;
+						case '=':
+							token_last = i - 1;
+							if (token_last - token_first + 1 > 0) {
+								token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+								token_arr_count++;
+							}
+							token_first = i;
+							token_last = i;
+
 							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
 							token_arr_count++;
+
+							token_first = i + 1;
+							token_last = i + 1;
+							break;
 						}
-						token_first = i + 1;
-						token_last = i + 1;
-
-						{//
-							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
-							token_arr_count++;
-						}
-
-						break;
-					case ' ':
-					case '\t':
-					case '\r':
-					case '\v':
-					case '\f':
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-							token_arr_count++;
-						}
-						token_first = i + 1;
-						token_last = i + 1;
-
-						break;
-					case '{':
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-							token_arr_count++;
-						}
-
-						token_first = i;
-						token_last = i;
-
-						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-						token_arr_count++;
-
-						token_first = i + 1;
-						token_last = i + 1;
-						break;
-					case '}':
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-							token_arr_count++;
-						}
-						token_first = i;
-						token_last = i;
-
-						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-						token_arr_count++;
-
-						token_first = i + 1;
-						token_last = i + 1;
-						break;
-					case '=':
-						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-							token_arr_count++;
-						}
-						token_first = i;
-						token_last = i;
-
-						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
-						token_arr_count++;
-
-						token_first = i + 1;
-						token_last = i + 1;
-						break;
-					}
+					
 				}
 
 				if (length - 1 - token_first + 1 > 0) {
@@ -376,8 +378,8 @@ namespace wiz {
 				_token_arr_size = token_arr_size;
 			}
 		}
-		
-	
+
+
 
 		static void ScanningNew(char* text, const long long length, const int thr_num,
 			long long*& _token_arr, long long& _token_arr_size, const LoadDataOption& option)
@@ -418,7 +420,7 @@ namespace wiz {
 			long long token_count = 0;
 
 			std::vector<long long> token_arr_size(thr_num);
-		
+
 			for (int i = 0; i < thr_num; ++i) {
 				thr[i] = std::thread(_Scanning, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]), option);
 			}
@@ -481,7 +483,7 @@ namespace wiz {
 					}
 				}
 			}
-			
+
 			{
 				if (0 != state) {
 					std::cout << "[ERRROR] state [" << state << "] is not zero \n";
@@ -636,7 +638,7 @@ namespace wiz {
 				inFile.seekg(0, inFile.end);
 				unsigned long long length = inFile.tellg();
 				inFile.seekg(0, inFile.beg);
-				
+
 				BomType x = ReadBom(inFile);
 				//	wiz::Out << "length " << length << "\n";
 				if (x == BomType::UTF_8) {
