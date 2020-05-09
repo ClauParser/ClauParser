@@ -124,6 +124,7 @@ namespace wiz {
 			
 
 			if (0 == readSize) {
+				clearerr(file);
 				fseek(file, 0, SEEK_SET);
 
 				return BomType::ANSI;
@@ -133,10 +134,12 @@ namespace wiz {
 			BomType type = ReadBom(btBom, readSize, stBom);
 
 			if (type == BomType::ANSI) { // ansi
+				clearerr(file);
 				fseek(file, 0, SEEK_SET);
 				return BomType::ANSI;
 			}
 
+			clearerr(file);
 			fseek(file, stBom.bom_size * sizeof(char), SEEK_SET);
 			return type;
 		}
