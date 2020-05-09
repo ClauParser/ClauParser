@@ -14,6 +14,7 @@
 
 #include <thread>
 
+
 namespace wiz {
 	template <typename T>
 	inline T pos_1(const T x, const int base = 10)
@@ -117,14 +118,14 @@ namespace wiz {
 			{ 3, { (char)0xEF, (char)0xBB, (char)0xBF } }
 		};
 
-		static BomType ReadBom(std::ifstream& file) {
+		static BomType ReadBom(FILE* file) {
 			char btBom[5] = { 0, };
-			file.read(btBom, 5);
-			size_t readSize = file.gcount();
+			size_t readSize = fread(btBom, sizeof(char), 5, file);
+			
 
 			if (0 == readSize) {
-				file.clear();
-				file.seekg(0, std::ios_base::beg);
+				fseek(file, 0, SEEK_SET);
+
 				return BomType::ANSI;
 			}
 
@@ -132,13 +133,11 @@ namespace wiz {
 			BomType type = ReadBom(btBom, readSize, stBom);
 
 			if (type == BomType::ANSI) { // ansi
-				file.clear();
-				file.seekg(0, std::ios_base::beg);
+				fseek(file, 0, SEEK_SET);
 				return BomType::ANSI;
 			}
 
-			file.clear();
-			file.seekg(stBom.bom_size, std::ios_base::beg);
+			fseek(file, stBom.bom_size * sizeof(char), SEEK_SET);
 			return type;
 		}
 
@@ -212,6 +211,10 @@ namespace wiz {
 		}
 		static bool IsToken2(long long x) {
 			return (x & 1);
+		}
+
+		static void PrintToken(const char* buffer, long long token) {
+			std::cout << std::string(buffer + GetIdx(token), GetLength(token));
 		}
 
 		static void _Scanning(char* text, long long num, const long long length,
@@ -621,10 +624,10 @@ namespace wiz {
 		}
 
 
-		static std::pair<bool, int> Scan(std::ifstream& inFile, const int num, const wiz::LoadDataOption& option, int thr_num,
+		static std::pair<bool, int> Scan(FILE* inFile, const int num, const wiz::LoadDataOption& option, int thr_num,
 			char*& _buffer, long long* _buffer_len, long long*& _token_arr, long long* _token_arr_len)
 		{
-			if (inFile.eof()) {
+			if (inFile == nullptr) {
 				return { false, 0 };
 			}
 
@@ -636,11 +639,12 @@ namespace wiz {
 			long long file_length;
 
 			{
-				inFile.seekg(0, inFile.end);
-				unsigned long long length = inFile.tellg();
-				inFile.seekg(0, inFile.beg);
+				fseek(inFile, 0, SEEK_END);
+				unsigned long long length = ftell(inFile);
+				fseek(inFile, 0, SEEK_SET);
 
 				BomType x = ReadBom(inFile);
+				
 				//	wiz::Out << "length " << length << "\n";
 				if (x == BomType::UTF_8) {
 					length = length - 3;
@@ -649,8 +653,11 @@ namespace wiz {
 				file_length = length;
 				buffer = new char[file_length + 1]; // 
 
+				//int a = clock();
 				// read data as a block:
-				inFile.read(buffer, file_length);
+				fread(buffer, sizeof(char), file_length, inFile);
+				//int b = clock();
+				//std::cout << b - a << " " << file_length <<"\n";
 
 				buffer[file_length] = '\0';
 
@@ -679,20 +686,20 @@ namespace wiz {
 		}
 
 	private:
-		std::ifstream* pInFile;
+		FILE* pInFile;
 	public:
 		int Num;
 	public:
-		explicit InFileReserver(std::ifstream& inFile)
+		explicit InFileReserver(FILE* inFile)
 		{
-			pInFile = &inFile;
+			pInFile = inFile;
 			Num = 1;
 		}
-		bool end()const { return pInFile->eof(); } //
+		//bool end()const { return pInFile->eof(); } //
 	public:
 		bool operator() (const wiz::LoadDataOption& option, int thr_num, char*& buffer, long long* buffer_len, long long*& token_arr, long long* token_arr_len)
 		{
-			bool x = Scan(*pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len).second > 0;
+			bool x = Scan(pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len).second > 0;
 
 			//	std::cout << *token_arr_len << "\n";
 			return x;
@@ -2180,6 +2187,8 @@ namespace wiz {
 					chk_ut_next = true;
 				}
 
+				_next->ReserveItemList(_ut->GetItemListSize());
+
 				for (int i = 0; i < _ut->GetIListSize(); ++i) {
 					if (_ut->IsUserTypeList(i)) {
 						if (_ut->GetUserTypeList(utCount)->GetName() == "#") {
@@ -2717,13 +2726,13 @@ namespace wiz {
 			}
 
 			bool success = true;
-			std::ifstream inFile;
-			inFile.open(fileName, std::ios::binary);
+			FILE* inFile;
+			fopen_s(&inFile, fileName.c_str(), "rb");
 
 
-			if (true == inFile.fail())
+			if (!inFile)
 			{
-				inFile.close(); return false;
+				return false;
 			}
 
 			UserType globalTemp;
@@ -2739,16 +2748,16 @@ namespace wiz {
 				// cf) empty file..
 				if (false == _LoadData(ifReserver, globalTemp, option, lex_thr_num, parse_thr_num))
 				{
-					inFile.close();
+					fclose(inFile);
 					return false; // return true?
 				}
 
-				inFile.close();
+				fclose(inFile);
 			}
-			catch (const char* err) { std::cout << err << "\n"; inFile.close(); return false; }
-			catch (const std::string& e) { std::cout << e << "\n"; inFile.close(); return false; }
-			catch (const std::exception& e) { std::cout << e.what() << "\n"; inFile.close(); return false; }
-			catch (...) { std::cout << "not expected error" << "\n"; inFile.close(); return false; }
+			catch (const char* err) { std::cout << err << "\n"; fclose(inFile); return false; }
+			catch (const std::string& e) { std::cout << e << "\n"; fclose(inFile); return false; }
+			catch (const std::exception& e) { std::cout << e.what() << "\n"; fclose(inFile); return false; }
+			catch (...) { std::cout << "not expected error" << "\n"; fclose(inFile); return false; }
 
 
 			global = std::move(globalTemp);
