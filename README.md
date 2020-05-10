@@ -7,7 +7,7 @@ Load Data Parallel From Paradox Game Data File ( especially "save game" )and Cre
 
  
 
-Loading Data Parallel From Paradox Game Data File(50MB) take 460 ~ 850 ms in my computer.(Intel i7 8th gen cpu - 4 core 8 thread,, ssd)
+Loading Data Parallel From Paradox Game Data File(50MB) take 360 ~ 600 ms in my computer.(Intel i7 8th gen cpu - 4 core 8 thread,, ssd)
 
 
 
