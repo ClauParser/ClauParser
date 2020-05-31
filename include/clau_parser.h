@@ -121,7 +121,7 @@ namespace wiz {
 		static BomType ReadBom(FILE* file) {
 			char btBom[5] = { 0, };
 			size_t readSize = fread(btBom, sizeof(char), 5, file);
-			
+
 
 			if (0 == readSize) {
 				clearerr(file);
@@ -179,7 +179,6 @@ namespace wiz {
 
 			return BomType::ANSI;
 		}
-
 
 
 		// todo - rename.
@@ -533,6 +532,15 @@ namespace wiz {
 							state = 3;
 						}
 						else if ('\"' == ch) {
+							token_last = i - 1;
+							if (token_last - token_first + 1 > 0) {
+								token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
+								token_arr_count++;
+							}
+
+							token_first = i;
+							token_last = i;
+
 							state = 1;
 						}
 						else if (isWhitespace(ch) || '\0' == ch) {
@@ -597,6 +605,14 @@ namespace wiz {
 							state = 2;
 						}
 						else if ('\"' == ch) {
+							token_last = i;
+
+							token_arr[token_arr_count] = Get(token_first, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+
+							token_first = i + 1;
+							token_last = i + 1;
+
 							state = 0;
 						}
 					}
@@ -647,7 +663,7 @@ namespace wiz {
 				fseek(inFile, 0, SEEK_SET);
 
 				BomType x = ReadBom(inFile);
-				
+
 				//	wiz::Out << "length " << length << "\n";
 				if (x == BomType::UTF_8) {
 					length = length - 3;
@@ -715,7 +731,7 @@ namespace wiz {
 
 	public:
 		explicit Type() { }
-		explicit Type(const char* str, size_t len) : name(std::string(str,len)) { }
+		explicit Type(const char* str, size_t len) : name(std::string(str, len)) { }
 		explicit Type(const std::string& name, const bool valid = true) : name(name) { }//chk();  }
 		explicit Type(std::string&& name, const bool valid = true) : name(move(name)) { }//chk(); }
 		Type(const Type& type)
