@@ -127,7 +127,8 @@ line comment를 시작하는 #를 만나면 state가 3이되고 state가 3이면
 		}
 	}
 #
-주의사항 : Scanning함수에는 abc"ddd eee"fgh 를 하나의 토큰으로 간주함.
+주의사항 : Scanning함수에는 abc"ddd eee"fgh 를 하나의 토큰으로 간주함.  
+(이제는 ScanningNew함수처럼 abc "ddd eee" fgh 3개의 토큰으로 간주한다.)
 
 #
  그럼 병렬 스캐닝(Parallel Scanning)은 어떻게 해야할까요?
