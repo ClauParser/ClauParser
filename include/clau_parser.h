@@ -2746,7 +2746,8 @@ namespace wiz {
 
 			bool success = true;
 			FILE* inFile;
-			fopen_s(&inFile, fileName.c_str(), "rb");
+		
+	inFile =fopen(fileName.c_str(), "rb");
 
 
 			if (!inFile)
