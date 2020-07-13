@@ -14,6 +14,7 @@
 
 #include <thread>
 
+#include <intrin.h>
 
 namespace wiz {
 	template <typename T>
@@ -219,7 +220,343 @@ namespace wiz {
 			std::cout << std::string(buffer + GetIdx(token), GetLength(token));
 		}
 
+		// use simd - experimental.. 
 		static void _Scanning(char* text, long long num, const long long length,
+			long long*& token_arr, long long& _token_arr_size, const LoadDataOption& option) {
+
+			long long token_arr_size = 0;
+
+			{
+				int state = 0;
+
+				long long token_first = 0;
+				long long token_last = -1;
+
+				long long token_arr_count = 0;
+
+				__m256i temp;
+				__m256i _1st, _2nd, _3rd, _4th, _5th, _6th, _7th, _8th, _9th, _10th, _11th, _12th, _13th;
+
+				char ch1 = '\"';
+				_1st = _mm256_set_epi8(ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1,
+					ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1, ch1);
+				char ch2 = '\\';
+				_2nd = _mm256_set_epi8(ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2,
+					ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2, ch2);
+				char ch3 = '\n';
+				_3rd = _mm256_set_epi8(ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3,
+					ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3, ch3);
+				char ch4 = '\0';
+				_4th = _mm256_set_epi8(ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4,
+					ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4, ch4);
+				char ch5 = '#';
+				_5th = _mm256_set_epi8(ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5,
+					ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5, ch5);
+				char ch6 = ' ';
+				_6th = _mm256_set_epi8(ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6,
+					ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6, ch6);
+				char ch7 = '\t';
+				_7th = _mm256_set_epi8(ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7,
+					ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7, ch7);
+				char ch8 = '\r';
+				_8th = _mm256_set_epi8(ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8,
+					ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8, ch8);
+				char ch9 = '\v';
+				_9th = _mm256_set_epi8(ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9,
+					ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9, ch9);
+				char ch10 = '\f';
+				_10th = _mm256_set_epi8(ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10,
+					ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10, ch10);
+
+				char ch11 = '{';
+				_11th = _mm256_set_epi8(ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11,
+					ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11);
+
+				char ch12 = '}'; 
+				_12th = _mm256_set_epi8(ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12,
+					ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12);
+
+				char ch13 = '=';
+				_13th = _mm256_set_epi8(ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13,
+					ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13);
+
+				long long _i = 0;
+
+				__m256i mask1, mask2, mask3, mask4, mask5;
+				int val = -7; // 111
+				mask1 = _mm256_set_epi8(val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val,
+					val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
+
+				val = -2; // 010
+				mask2 = _mm256_set_epi8(val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val,
+					val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
+				
+				val = -5; // 101
+				mask3 = _mm256_set_epi8(val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val,
+						val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
+				
+				val = -10; // 1010
+				mask4 = _mm256_set_epi8(val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val,
+					val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
+
+				val = -15; // 1111
+				mask5 = _mm256_set_epi8(val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val,
+						val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
+				
+				for (; _i + 32 < length; _i = _i + 32) {
+					temp = _mm256_setr_epi8(text[_i], text[_i + 1], text[_i + 2], text[_i + 3], text[_i + 4], text[_i + 5], text[_i + 6], text[_i + 7],
+						text[_i + 8], text[_i + 9], text[_i + 10], text[_i + 11], text[_i + 12], text[_i + 13], text[_i + 14], text[_i + 15], text[_i+16],
+						text[_i + 17], text[_i + 18], text[_i + 19], text[_i + 20], text[_i + 21], text[_i + 22], text[_i + 23], text[_i + 24], text[_i + 25], 
+						text[_i + 26], text[_i + 27], text[_i + 28], text[_i + 29], text[_i + 30], text[_i + 31]);
+
+					__m256i x1, x2, x3,x4,x5, x6, x7, x8, x9, x10, x11, x12, x13;
+					
+					x1 = _mm256_cmpeq_epi8(temp, _1st);
+					x2 = _mm256_cmpeq_epi8(temp, _2nd);
+					x3 = _mm256_cmpeq_epi8(temp, _3rd);
+					x4 = _mm256_cmpeq_epi8(temp, _4th);
+					x5 = _mm256_cmpeq_epi8(temp, _5th);
+					x6 = _mm256_cmpeq_epi8(temp, _6th);
+					x7 = _mm256_cmpeq_epi8(temp, _7th);
+					x8 = _mm256_cmpeq_epi8(temp, _8th);
+					x9 = _mm256_cmpeq_epi8(temp, _9th);
+					x10 = _mm256_cmpeq_epi8(temp, _10th);
+					x11 = _mm256_cmpeq_epi8(temp, _11th);
+					x12 = _mm256_cmpeq_epi8(temp, _12th);
+					x13 = _mm256_cmpeq_epi8(temp, _13th);
+	
+					x1 = _mm256_blendv_epi8(x1, mask5, x1);
+					x2 = _mm256_blendv_epi8(x2, mask4, x2);
+					x3 = _mm256_blendv_epi8(x3, mask5, x3);
+					x4 = _mm256_blendv_epi8(x4, mask5, x4);
+					x5 = _mm256_blendv_epi8(x5, mask5, x5);
+					x6 = _mm256_blendv_epi8(x6, mask3, x6);
+					x7 = _mm256_blendv_epi8(x7, mask3, x7);
+					x8 = _mm256_blendv_epi8(x8, mask3, x8);
+					x9 = _mm256_blendv_epi8(x9, mask3, x9);
+					x10 = _mm256_blendv_epi8(x10, mask3,  x10);
+					x11 = _mm256_blendv_epi8(x11, mask1,  x11);
+					x12 = _mm256_blendv_epi8(x12, mask1,  x12);
+					x13 = _mm256_blendv_epi8(x13, mask1,  x13);
+
+
+					x1 = _mm256_add_epi8(x1, x2);
+					x3 = _mm256_add_epi8(x3, x4);
+					x5 = _mm256_add_epi8(x5, x6);
+					x7 = _mm256_add_epi8(x7, x8);
+					x9 = _mm256_add_epi8(x9, x10);
+					x11 = _mm256_add_epi8(x11, x12);
+					
+					x1 = _mm256_add_epi8(x1, x3);
+					x5 = _mm256_add_epi8(x5, x7);
+					x9 = _mm256_add_epi8(x9, x11);
+
+					x1 = _mm256_add_epi8(x1, x5);
+					x9 = _mm256_add_epi8(x9, x13);
+
+					x1 = _mm256_add_epi8(x1, x9);
+
+					int start = 0;
+					int r = _mm256_movemask_epi8(x1);
+
+					while (r != 0) {
+						{
+							int a = _tzcnt_u32(r); // 
+							
+							r = r & (r - 1);
+							
+							start = a;
+
+							{
+								const long long i = _i + start;
+
+								if (((-x1.m256i_i8[start]) & 0b100) != 0) {
+									token_last = i - 1;
+									if (token_last - token_first + 1 > 0) {
+										token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+										token_arr_count++;
+									}
+
+									token_first = i;
+									token_last = i;
+								}
+								if (((-x1.m256i_i8[start]) & 0b010) != 0) {
+									{//
+										if (((-x1.m256i_i8[start]) & 0b1000) != 0) {
+											token_arr[num + token_arr_count] = 1;
+										}
+										const char ch = text[i];
+										token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+										token_arr_count++;
+									}
+								}
+								if (((-x1.m256i_i8[start]) & 0b001) != 0) {
+									token_first = i + 1;
+									token_last = i + 1;
+								}
+
+
+								continue;
+							}
+						}
+					}
+				}
+
+				//default?
+				for (; _i < length; _i = _i + 1) {
+					long long i = _i;
+					const char ch = text[i];
+
+					switch (ch) {
+					case '\"':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+
+						token_first = i;
+						token_last = i;
+
+						token_first = i + 1;
+						token_last = i + 1;
+
+						{//
+							token_arr[num + token_arr_count] = 1;
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+							token_arr_count++;
+						}
+						break;
+					case '\\':
+					{//
+						token_arr[num + token_arr_count] = 1;
+						token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+						token_arr_count++;
+					}
+					break;
+					case '\n':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+						token_first = i + 1;
+						token_last = i + 1;
+
+						{//
+							token_arr[num + token_arr_count] = 1;
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+							token_arr_count++;
+						}
+						break;
+					case '\0':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+						token_first = i + 1;
+						token_last = i + 1;
+
+						{//
+							token_arr[num + token_arr_count] = 1;
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+							token_arr_count++;
+						}
+						break;
+					case '#':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+						token_first = i + 1;
+						token_last = i + 1;
+
+						{//
+							token_arr[num + token_arr_count] = 1;
+							token_arr[num + token_arr_count] += Get(i + num, 1, ch, option);
+							token_arr_count++;
+						}
+
+						break;
+					case ' ':
+					case '\t':
+					case '\r':
+					case '\v':
+					case '\f':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+						token_first = i + 1;
+						token_last = i + 1;
+
+						break;
+					case '{':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+
+						token_first = i;
+						token_last = i;
+
+						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+						token_arr_count++;
+
+						token_first = i + 1;
+						token_last = i + 1;
+						break;
+					case '}':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+						token_first = i;
+						token_last = i;
+
+						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+						token_arr_count++;
+
+						token_first = i + 1;
+						token_last = i + 1;
+						break;
+					case '=':
+						token_last = i - 1;
+						if (token_last - token_first + 1 > 0) {
+							token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr_count++;
+						}
+						token_first = i;
+						token_last = i;
+
+						token_arr[num + token_arr_count] = Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+						token_arr_count++;
+
+						token_first = i + 1;
+						token_last = i + 1;
+						break;
+					}
+
+				}
+
+				if (length - 1 - token_first + 1 > 0) {
+					token_arr[num + token_arr_count] = Get(token_first + num, length - 1 - token_first + 1, text[token_first], option);
+					token_arr_count++;
+				}
+				token_arr_size = token_arr_count;
+			}
+
+			{
+				_token_arr_size = token_arr_size;
+			}
+		}
+
+		static void _ScanningBackup(char* text, long long num, const long long length,
 			long long*& token_arr, long long& _token_arr_size, const LoadDataOption& option) {
 
 			long long token_arr_size = 0;
@@ -386,9 +723,8 @@ namespace wiz {
 		}
 
 
-
 		static void ScanningNew(char* text, const long long length, const int thr_num,
-			long long*& _token_arr, long long& _token_arr_size, const LoadDataOption& option)
+			long long*& _token_arr, long long& _token_arr_size, const LoadDataOption& option, bool use_simd)
 		{
 			std::vector<std::thread> thr(thr_num);
 			std::vector<long long> start(thr_num);
@@ -428,7 +764,12 @@ namespace wiz {
 			std::vector<long long> token_arr_size(thr_num);
 
 			for (int i = 0; i < thr_num; ++i) {
-				thr[i] = std::thread(_Scanning, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]), option);
+				if (use_simd) {
+					thr[i] = std::thread(_Scanning, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]), option);
+				}
+				else {
+					thr[i] = std::thread(_ScanningBackup, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]), option);
+				}
 			}
 
 			for (int i = 0; i < thr_num; ++i) {
@@ -644,7 +985,7 @@ namespace wiz {
 
 
 		static std::pair<bool, int> Scan(FILE* inFile, const int num, const wiz::LoadDataOption& option, int thr_num,
-			char*& _buffer, long long* _buffer_len, long long*& _token_arr, long long* _token_arr_len)
+			char*& _buffer, long long* _buffer_len, long long*& _token_arr, long long* _token_arr_len, bool use_simd)
 		{
 			if (inFile == nullptr) {
 				return { false, 0 };
@@ -689,7 +1030,7 @@ namespace wiz {
 						Scanning(buffer, file_length, token_arr, token_arr_size, option);
 					}
 					else {
-						ScanningNew(buffer, file_length, thr_num, token_arr, token_arr_size, option);
+						ScanningNew(buffer, file_length, thr_num, token_arr, token_arr_size, option, use_simd);
 					}
 
 					//int b = clock();
@@ -706,21 +1047,21 @@ namespace wiz {
 
 	private:
 		FILE* pInFile;
+		bool use_simd;
 	public:
 		int Num;
 	public:
-		explicit InFileReserver(FILE* inFile)
+		explicit InFileReserver(FILE* inFile, bool use_simd)
 		{
 			pInFile = inFile;
 			Num = 1;
+			this->use_simd = use_simd;
 		}
-		//bool end()const { return pInFile->eof(); } //
 	public:
 		bool operator() (const wiz::LoadDataOption& option, int thr_num, char*& buffer, long long* buffer_len, long long*& token_arr, long long* token_arr_len)
 		{
-			bool x = Scan(pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len).second > 0;
+			bool x = Scan(pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len, use_simd).second > 0;
 
-			//	std::cout << *token_arr_len << "\n";
 			return x;
 		}
 	};
@@ -2728,7 +3069,7 @@ namespace wiz {
 			return true;
 		}
 	public:
-		static bool LoadDataFromFile(const std::string& fileName, UserType& global, int lex_thr_num, int parse_thr_num) /// global should be empty
+		static bool LoadDataFromFile(const std::string& fileName, UserType& global, int lex_thr_num, int parse_thr_num, bool use_simd = false) /// global should be empty
 		{
 			if (lex_thr_num <= 0) {
 				lex_thr_num = std::thread::hardware_concurrency();
@@ -2759,7 +3100,7 @@ namespace wiz {
 
 			try {
 
-				InFileReserver ifReserver(inFile);
+				InFileReserver ifReserver(inFile, use_simd);
 				wiz::LoadDataOption option;
 
 				char* buffer = nullptr;
