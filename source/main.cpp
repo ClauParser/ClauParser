@@ -47,22 +47,42 @@ int main(void)
 		std::cout << global.ToString();
 	}
 	*/
-
-	wiz::UserType global;
+	
 	std::string fileName = "input.eu4"; 
 	
 	std::cin >> fileName;
-	
 
-	int a = clock();
+	{
+		wiz::UserType global;
 
-	wiz::LoadData::LoadDataFromFile(fileName, global, 0, 0);
+		int a = clock();
 
-	int b = clock();
+		wiz::LoadData::LoadDataFromFile(fileName, global, 0, 0, true);
 
-	std::cout << b - a << "ms" << "\n";
-	
-	wiz::LoadData::SaveWizDB2(global, "output.eu4");
+		int b = clock();
+
+		std::cout << b - a << "ms" << "\n";
+
+		//wiz::LoadData::SaveWizDB2(global, "output.eu4");
+	}
+
+
+	{
+		wiz::UserType global;
+
+		int a = clock();
+
+		wiz::LoadData::LoadDataFromFile(fileName, global, 0, 0, false);
+
+		int b = clock();
+
+		std::cout << b - a << "ms" << "\n";
+
+		//wiz::LoadData::SaveWizDB2(global, "output.eu4");
+	}
+
+
+	//wiz::LoadData::SaveWizDB2(global, "output.eu4");
 	
 
 	return 0;
