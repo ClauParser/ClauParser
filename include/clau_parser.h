@@ -16,7 +16,7 @@
 
 #include <intrin.h>
 
-namespace wiz {
+namespace clau_parser {
 	template <typename T>
 	inline T pos_1(const T x, const int base = 10)
 	{
@@ -183,7 +183,7 @@ namespace wiz {
 
 
 		// todo - rename.
-		static long long Get(long long position, long long length, char ch, const wiz::LoadDataOption& option) {
+		static long long Get(long long position, long long length, char ch, const clau_parser::LoadDataOption& option) {
 			long long x = (position << 32) + (length << 3) + 0;
 
 			if (length != 1) {
@@ -984,7 +984,7 @@ namespace wiz {
 		}
 
 
-		static std::pair<bool, int> Scan(FILE* inFile, const int num, const wiz::LoadDataOption& option, int thr_num,
+		static std::pair<bool, int> Scan(FILE* inFile, const int num, const clau_parser::LoadDataOption& option, int thr_num,
 			char*& _buffer, long long* _buffer_len, long long*& _token_arr, long long* _token_arr_len, bool use_simd)
 		{
 			if (inFile == nullptr) {
@@ -1005,7 +1005,7 @@ namespace wiz {
 
 				BomType x = ReadBom(inFile);
 
-				//	wiz::Out << "length " << length << "\n";
+				//	clau_parser::Out << "length " << length << "\n";
 				if (x == BomType::UTF_8) {
 					length = length - 3;
 				}
@@ -1058,7 +1058,7 @@ namespace wiz {
 			this->use_simd = use_simd;
 		}
 	public:
-		bool operator() (const wiz::LoadDataOption& option, int thr_num, char*& buffer, long long* buffer_len, long long*& token_arr, long long* token_arr_len)
+		bool operator() (const clau_parser::LoadDataOption& option, int thr_num, char*& buffer, long long* buffer_len, long long*& token_arr, long long* token_arr_len)
 		{
 			bool x = Scan(pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len, use_simd).second > 0;
 
@@ -1972,14 +1972,14 @@ namespace wiz {
 
 			useSortedItemList = false;
 		}
-		void AddItemType(wiz::ItemType<std::string>&& item) {
+		void AddItemType(clau_parser::ItemType<std::string>&& item) {
 			itemList.push_back(std::move(item));
 			ilist.push_back(1);
 
 			useSortedItemList = false;
 		}
 
-		void AddItemType(const wiz::ItemType<std::string>& item) {
+		void AddItemType(const clau_parser::ItemType<std::string>& item) {
 			itemList.push_back(item);
 			ilist.push_back(1);
 
@@ -2600,7 +2600,7 @@ namespace wiz {
 			return (x & 6) >> 1;
 		}
 	private:
-		static bool __LoadData(const char* buffer, const long long* token_arr, long long token_arr_len, UserType* _global, const wiz::LoadDataOption* _option,
+		static bool __LoadData(const char* buffer, const long long* token_arr, long long token_arr_len, UserType* _global, const clau_parser::LoadDataOption* _option,
 			int start_state, int last_state, UserType** next, int* err)
 		{
 
@@ -2613,7 +2613,7 @@ namespace wiz {
 			}
 
 			UserType& global = *_global;
-			wiz::LoadDataOption option = *_option;
+			clau_parser::LoadDataOption option = *_option;
 
 			int state = start_state;
 			int braceNum = 0;
@@ -2863,7 +2863,7 @@ namespace wiz {
 		}
 
 
-		static long long FindDivisionPlace(const char* buffer, const long long* token_arr, long long start, long long last, const wiz::LoadDataOption& option)
+		static long long FindDivisionPlace(const char* buffer, const long long* token_arr, long long start, long long last, const clau_parser::LoadDataOption& option)
 		{
 			for (long long a = last; a >= start; --a) {
 				long long len = GetLength(token_arr[a]);
@@ -2896,7 +2896,7 @@ namespace wiz {
 			return -1;
 		}
 
-		static bool _LoadData(InFileReserver& reserver, UserType& global, wiz::LoadDataOption option, const int lex_thr_num, const int parse_num) // first, strVec.empty() must be true!!
+		static bool _LoadData(InFileReserver& reserver, UserType& global, clau_parser::LoadDataOption option, const int lex_thr_num, const int parse_num) // first, strVec.empty() must be true!!
 		{
 			const int pivot_num = parse_num - 1;
 			char* buffer = nullptr;
@@ -3069,7 +3069,7 @@ namespace wiz {
 			return true;
 		}
 	public:
-		static bool LoadDataFromFile(const std::string& fileName, UserType& global, int lex_thr_num, int parse_thr_num, bool use_simd = false) /// global should be empty
+		static bool LoadDataFromFile(const std::string& fileName, UserType& global, int lex_thr_num = 1, int parse_thr_num = 1, bool use_simd = false) /// global should be empty
 		{
 			if (lex_thr_num <= 0) {
 				lex_thr_num = std::thread::hardware_concurrency();
@@ -3101,7 +3101,7 @@ namespace wiz {
 			try {
 
 				InFileReserver ifReserver(inFile, use_simd);
-				wiz::LoadDataOption option;
+				clau_parser::LoadDataOption option;
 
 				char* buffer = nullptr;
 				ifReserver.Num = 1 << 19;
