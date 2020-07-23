@@ -52,37 +52,36 @@ int main(void)
 	
 	std::cin >> fileName;
 
-	{
-		wiz::UserType global;
+	for (int i = 1; i <= 8; ++i) {
+		clau_parser::UserType global;
 
 		int a = clock();
 
-		wiz::LoadData::LoadDataFromFile(fileName, global, 0, 0, true);
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, i, 0);
 
 		int b = clock();
 
 		std::cout << b - a << "ms" << "\n";
 
-		//wiz::LoadData::SaveWizDB2(global, "output.eu4");
+		//	clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
 
-
-	{
-		wiz::UserType global;
+	/*	{
+		clau_parser::UserType global;
 
 		int a = clock();
 
-		wiz::LoadData::LoadDataFromFile(fileName, global, 0, 0, false);
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0, false);
 
 		int b = clock();
 
 		std::cout << b - a << "ms" << "\n";
 
-		//wiz::LoadData::SaveWizDB2(global, "output.eu4");
+		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
+	*/
 
-
-	//wiz::LoadData::SaveWizDB2(global, "output.eu4");
+	//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	
 
 	return 0;
