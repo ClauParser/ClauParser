@@ -47,22 +47,41 @@ int main(void)
 		std::cout << global.ToString();
 	}
 	*/
-
-	wiz::UserType global;
+	
 	std::string fileName = "input.eu4"; 
 	
 	std::cin >> fileName;
-	
 
-	int a = clock();
+	for (int i = 1; i <= 8; ++i) {
+		clau_parser::UserType global;
 
-	wiz::LoadData::LoadDataFromFile(fileName, global, 0, 0);
+		int a = clock();
 
-	int b = clock();
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, i, 0);
 
-	std::cout << b - a << "ms" << "\n";
-	
-	wiz::LoadData::SaveWizDB2(global, "output.eu4");
+		int b = clock();
+
+		std::cout << b - a << "ms" << "\n";
+
+		//	clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
+	}
+
+	/*	{
+		clau_parser::UserType global;
+
+		int a = clock();
+
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0, false);
+
+		int b = clock();
+
+		std::cout << b - a << "ms" << "\n";
+
+		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
+	}
+	*/
+
+	//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	
 
 	return 0;
