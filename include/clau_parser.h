@@ -26,7 +26,7 @@ namespace clau_parser {
 	}
 
 
-	template <typename T> /// T <- char, int, long, long long...
+	template <typename T> /// T <- char, int, long, int64_t...
 	std::string toStr(const T x) /// chk!!
 	{
 		const int base = 10;
@@ -93,7 +93,7 @@ namespace clau_parser {
 	}
 
 
-	inline int Equal(const long long x, const long long y)
+	inline int Equal(const int64_t x, const int64_t y)
 	{
 		if (x == y) {
 			return 0;
@@ -183,8 +183,8 @@ namespace clau_parser {
 
 
 		// todo - rename.
-		static long long Get(long long position, long long length, char ch, const clau_parser::LoadDataOption& option) {
-			long long x = (position << 32) + (length << 3) + 0;
+		static int64_t Get(int64_t position, int64_t length, char ch, const clau_parser::LoadDataOption& option) {
+			int64_t x = (position << 32) + (length << 3) + 0;
 
 			if (length != 1) {
 				return x;
@@ -203,36 +203,36 @@ namespace clau_parser {
 			return x;
 		}
 
-		static long long GetIdx(long long x) {
+		static int64_t GetIdx(int64_t x) {
 			return (x >> 32) & 0x00000000FFFFFFFF;
 		}
-		static long long GetLength(long long x) {
+		static int64_t GetLength(int64_t x) {
 			return (x & 0x00000000FFFFFFF8) >> 3;
 		}
-		static long long GetType(long long x) { //to enum or enum class?
+		static int64_t GetType(int64_t x) { //to enum or enum class?
 			return (x & 6) >> 1;
 		}
-		static bool IsToken2(long long x) {
+		static bool IsToken2(int64_t x) {
 			return (x & 1);
 		}
 
-		static void PrintToken(const char* buffer, long long token) {
+		static void PrintToken(const char* buffer, int64_t token) {
 			std::cout << std::string(buffer + GetIdx(token), GetLength(token));
 		}
 
 		// use simd - experimental.. 
-		static void _Scanning(char* text, long long num, const long long length,
-			long long*& token_arr, long long& _token_arr_size, const LoadDataOption& option) {
+		static void _Scanning(char* text, int64_t num, const int64_t length,
+			int64_t*& token_arr, int64_t& _token_arr_size, const LoadDataOption& option) {
 
-			long long token_arr_size = 0;
+			int64_t token_arr_size = 0;
 
 			{
 				int state = 0;
 
-				long long token_first = 0;
-				long long token_last = -1;
+				int64_t token_first = 0;
+				int64_t token_last = -1;
 
-				long long token_arr_count = 0;
+				int64_t token_arr_count = 0;
 
 				__m256i temp;
 				__m256i _1st, _2nd, _3rd, _4th, _5th, _6th, _7th, _8th, _9th, _10th, _11th, _12th, _13th;
@@ -280,7 +280,7 @@ namespace clau_parser {
 				_13th = _mm256_set_epi8(ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13,
 					ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13);
 
-				long long _i = 0;
+				int64_t _i = 0;
 
 				__m256i mask1, mask2, mask3, mask4, mask5;
 				int val = -7; // 111
@@ -368,7 +368,7 @@ namespace clau_parser {
 							start = a;
 
 							{
-								const long long i = _i + start;
+								const int64_t i = _i + start;
 
 								if (((-x1.m256i_i8[start]) & 0b100) != 0) {
 									token_last = i - 1;
@@ -404,7 +404,7 @@ namespace clau_parser {
 
 				//default?
 				for (; _i < length; _i = _i + 1) {
-					long long i = _i;
+					int64_t i = _i;
 					const char ch = text[i];
 
 					switch (ch) {
@@ -556,20 +556,20 @@ namespace clau_parser {
 			}
 		}
 
-		static void _ScanningBackup(char* text, long long num, const long long length,
-			long long*& token_arr, long long& _token_arr_size, const LoadDataOption& option) {
+		static void _ScanningBackup(char* text, int64_t num, const int64_t length,
+			int64_t*& token_arr, int64_t& _token_arr_size, const LoadDataOption& option) {
 
-			long long token_arr_size = 0;
+			int64_t token_arr_size = 0;
 
 			{
 				int state = 0;
 
-				long long token_first = 0;
-				long long token_last = -1;
+				int64_t token_first = 0;
+				int64_t token_last = -1;
 
-				long long token_arr_count = 0;
+				int64_t token_arr_count = 0;
 
-				for (long long i = 0; i < length; i = i + 1) {
+				for (int64_t i = 0; i < length; i = i + 1) {
 
 					const char ch = text[i];
 
@@ -723,12 +723,12 @@ namespace clau_parser {
 		}
 
 
-		static void ScanningNew(char* text, const long long length, const int thr_num,
-			long long*& _token_arr, long long& _token_arr_size, const LoadDataOption& option, bool use_simd)
+		static void ScanningNew(char* text, const int64_t length, const int thr_num,
+			int64_t*& _token_arr, int64_t& _token_arr_size, const LoadDataOption& option, bool use_simd)
 		{
 			std::vector<std::thread> thr(thr_num);
-			std::vector<long long> start(thr_num);
-			std::vector<long long> last(thr_num);
+			std::vector<int64_t> start(thr_num);
+			std::vector<int64_t> last(thr_num);
 
 			{
 				start[0] = 0;
@@ -736,7 +736,7 @@ namespace clau_parser {
 				for (int i = 1; i < thr_num; ++i) {
 					start[i] = length / thr_num * i;
 
-					for (long long x = start[i]; x <= length; ++x) {
+					for (int64_t x = start[i]; x <= length; ++x) {
 						if (isWhitespace(text[x]) || '\0' == text[x] ||
 							option.Left == text[x] || option.Right == text[x] || option.Assignment == text[x]) {
 							start[i] = x;
@@ -746,7 +746,7 @@ namespace clau_parser {
 				}
 				for (int i = 0; i < thr_num - 1; ++i) {
 					last[i] = start[i + 1];
-					for (long long x = last[i]; x <= length; ++x) {
+					for (int64_t x = last[i]; x <= length; ++x) {
 						if (isWhitespace(text[x]) || '\0' == text[x] ||
 							option.Left == text[x] || option.Right == text[x] || option.Assignment == text[x]) {
 							last[i] = x;
@@ -756,12 +756,12 @@ namespace clau_parser {
 				}
 				last[thr_num - 1] = length + 1;
 			}
-			long long real_token_arr_count = 0;
+			int64_t real_token_arr_count = 0;
 
-			long long* tokens = new long long[length + 1];
-			long long token_count = 0;
+			int64_t* tokens = new int64_t[length + 1];
+			int64_t token_count = 0;
 
-			std::vector<long long> token_arr_size(thr_num);
+			std::vector<int64_t> token_arr_size(thr_num);
 
 			for (int i = 0; i < thr_num; ++i) {
 				if (use_simd) {
@@ -777,16 +777,16 @@ namespace clau_parser {
 			}
 
 			int state = 0;
-			long long qouted_start;
-			long long slush_start;
+			int64_t qouted_start;
+			int64_t slush_start;
 
-			for (long long t = 0; t < thr_num; ++t) {
-				for (long long j = 0; j < token_arr_size[t]; ++j) {
-					const long long i = start[t] + j;
+			for (int64_t t = 0; t < thr_num; ++t) {
+				for (int64_t j = 0; j < token_arr_size[t]; ++j) {
+					const int64_t i = start[t] + j;
 
-					const long long len = GetLength(tokens[i]);
+					const int64_t len = GetLength(tokens[i]);
 					const char ch = text[GetIdx(tokens[i])];
-					const long long idx = GetIdx(tokens[i]);
+					const int64_t idx = GetIdx(tokens[i]);
 					const bool isToken2 = IsToken2(tokens[i]);
 
 					if (isToken2) {
@@ -805,8 +805,8 @@ namespace clau_parser {
 							state = 0;
 
 							{
-								long long idx = GetIdx(tokens[qouted_start]);
-								long long len = GetLength(tokens[qouted_start]);
+								int64_t idx = GetIdx(tokens[qouted_start]);
+								int64_t len = GetLength(tokens[qouted_start]);
 
 								len = GetIdx(tokens[i]) - idx + 1;
 
@@ -845,21 +845,21 @@ namespace clau_parser {
 		}
 
 
-		static void Scanning(char* text, const long long length,
-			long long*& _token_arr, long long& _token_arr_size, const LoadDataOption& option) {
+		static void Scanning(char* text, const int64_t length,
+			int64_t*& _token_arr, int64_t& _token_arr_size, const LoadDataOption& option) {
 
-			long long* token_arr = new long long[length + 1];
-			long long token_arr_size = 0;
+			int64_t* token_arr = new int64_t[length + 1];
+			int64_t token_arr_size = 0;
 
 			{
 				int state = 0;
 
-				long long token_first = 0;
-				long long token_last = -1;
+				int64_t token_first = 0;
+				int64_t token_last = -1;
 
-				long long token_arr_count = 0;
+				int64_t token_arr_count = 0;
 
-				for (long long i = 0; i <= length; ++i) {
+				for (int64_t i = 0; i <= length; ++i) {
 					const char ch = text[i];
 
 					if (0 == state) {
@@ -985,22 +985,22 @@ namespace clau_parser {
 
 
 		static std::pair<bool, int> Scan(FILE* inFile, const int num, const clau_parser::LoadDataOption& option, int thr_num,
-			char*& _buffer, long long* _buffer_len, long long*& _token_arr, long long* _token_arr_len, bool use_simd)
+			char*& _buffer, int64_t* _buffer_len, int64_t*& _token_arr, int64_t* _token_arr_len, bool use_simd)
 		{
 			if (inFile == nullptr) {
 				return { false, 0 };
 			}
 
-			long long* arr_count = nullptr; //
-			long long arr_count_size = 0;
+			int64_t* arr_count = nullptr; //
+			int64_t arr_count_size = 0;
 
 			std::string temp;
 			char* buffer = nullptr;
-			long long file_length;
+			int64_t file_length;
 
 			{
 				fseek(inFile, 0, SEEK_END);
-				unsigned long long length = ftell(inFile);
+				uint64_t length = ftell(inFile);
 				fseek(inFile, 0, SEEK_SET);
 
 				BomType x = ReadBom(inFile);
@@ -1023,8 +1023,8 @@ namespace clau_parser {
 
 				{
 					//int a = clock();
-					long long* token_arr;
-					long long token_arr_size;
+					int64_t* token_arr;
+					int64_t token_arr_size;
 
 					if (thr_num == 1) {
 						Scanning(buffer, file_length, token_arr, token_arr_size, option);
@@ -1058,7 +1058,7 @@ namespace clau_parser {
 			this->use_simd = use_simd;
 		}
 	public:
-		bool operator() (const clau_parser::LoadDataOption& option, int thr_num, char*& buffer, long long* buffer_len, long long*& token_arr, long long* token_arr_len)
+		bool operator() (const clau_parser::LoadDataOption& option, int thr_num, char*& buffer, int64_t* buffer_len, int64_t*& token_arr, int64_t* token_arr_len)
 		{
 			bool x = Scan(pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len, use_simd).second > 0;
 
@@ -1935,19 +1935,19 @@ namespace clau_parser {
 			useSortedUserTypeList = false;
 		}
 
-		void ReserveIList(long long offset)
+		void ReserveIList(int64_t offset)
 		{
 			if (offset > 0) {
 				ilist.reserve(offset);
 			}
 		}
-		void ReserveItemList(long long offset)
+		void ReserveItemList(int64_t offset)
 		{
 			if (offset > 0) {
 				itemList.reserve(offset);
 			}
 		}
-		void ReserveUserTypeList(long long offset)
+		void ReserveUserTypeList(int64_t offset)
 		{
 			if (offset > 0) {
 				userTypeList.reserve(offset);
@@ -2134,7 +2134,7 @@ namespace clau_parser {
 			return err;
 		}
 		/// add set Data
-		bool SetItem(const long long  var_idx, const std::string& value) {
+		bool SetItem(const int64_t  var_idx, const std::string& value) {
 			itemList[var_idx].Set(0, value);
 			return true;
 		}
@@ -2511,9 +2511,9 @@ namespace clau_parser {
 			TYPE_ASSIGN = 3 // 11
 		};
 	private:
-		static long long check_syntax_error1(long long str, int* err) {
-			long long len = GetLength(str);
-			long long type = GetType(str);
+		static int64_t check_syntax_error1(int64_t str, int* err) {
+			int64_t len = GetLength(str);
+			int64_t type = GetType(str);
 
 			if (1 == len && (type == TYPE_LEFT || type == TYPE_RIGHT ||
 				type == TYPE_ASSIGN)) {
@@ -2590,22 +2590,22 @@ namespace clau_parser {
 			}
 		}
 	private:
-		static long long GetIdx(long long x) {
+		static int64_t GetIdx(int64_t x) {
 			return (x >> 32) & 0x00000000FFFFFFFF;
 		}
-		static long long GetLength(long long x) {
+		static int64_t GetLength(int64_t x) {
 			return (x & 0x00000000FFFFFFF8) >> 3;
 		}
-		static long long GetType(long long x) { //to enum or enum class?
+		static int64_t GetType(int64_t x) { //to enum or enum class?
 			return (x & 6) >> 1;
 		}
 	private:
-		static bool __LoadData(const char* buffer, const long long* token_arr, long long token_arr_len, UserType* _global, const clau_parser::LoadDataOption* _option,
+		static bool __LoadData(const char* buffer, const int64_t* token_arr, int64_t token_arr_len, UserType* _global, const clau_parser::LoadDataOption* _option,
 			int start_state, int last_state, UserType** next, int* err)
 		{
 
-			std::vector<long long> varVec;
-			std::vector<long long> valVec;
+			std::vector<int64_t> varVec;
+			std::vector<int64_t> valVec;
 
 
 			if (token_arr_len <= 0) {
@@ -2618,17 +2618,17 @@ namespace clau_parser {
 			int state = start_state;
 			int braceNum = 0;
 			std::vector< UserType* > nestedUT(1);
-			long long var = 0, val = 0;
+			int64_t var = 0, val = 0;
 
 			nestedUT.reserve(10);
 			nestedUT[0] = &global;
 
 
-			long long count = 0;
-			const long long* x = token_arr;
-			const long long* x_next = x;
+			int64_t count = 0;
+			const int64_t* x = token_arr;
+			const int64_t* x_next = x;
 
-			for (long long i = 0; i < token_arr_len; ++i) {
+			for (int64_t i = 0; i < token_arr_len; ++i) {
 				x = x_next;
 				{
 					x_next = x + 1;
@@ -2637,7 +2637,7 @@ namespace clau_parser {
 					count--;
 					continue;
 				}
-				long long len = GetLength(token_arr[i]);
+				int64_t len = GetLength(token_arr[i]);
 
 				switch (state)
 				{
@@ -2731,7 +2731,7 @@ namespace clau_parser {
 					}
 					else {
 						if (x < token_arr + token_arr_len - 1) {
-							long long _len = GetLength(token_arr[i + 1]);
+							int64_t _len = GetLength(token_arr[i + 1]);
 							// EQ 3
 							if (_len == 1 && -1 != Equal(TYPE_ASSIGN, GetType(token_arr[i + 1]))) {
 								var = token_arr[i];
@@ -2863,11 +2863,11 @@ namespace clau_parser {
 		}
 
 
-		static long long FindDivisionPlace(const char* buffer, const long long* token_arr, long long start, long long last, const clau_parser::LoadDataOption& option)
+		static int64_t FindDivisionPlace(const char* buffer, const int64_t* token_arr, int64_t start, int64_t last, const clau_parser::LoadDataOption& option)
 		{
-			for (long long a = last; a >= start; --a) {
-				long long len = GetLength(token_arr[a]);
-				long long val = GetType(token_arr[a]);
+			for (int64_t a = last; a >= start; --a) {
+				int64_t len = GetLength(token_arr[a]);
+				int64_t val = GetType(token_arr[a]);
 
 
 				if (len == 1 && (-1 != Equal(TYPE_RIGHT, val))) { // right
@@ -2884,8 +2884,8 @@ namespace clau_parser {
 				}
 
 				if (a < last && pass == false) {
-					long long len = GetLength(token_arr[a + 1]);
-					long long val = GetType(token_arr[a + 1]);
+					int64_t len = GetLength(token_arr[a + 1]);
+					int64_t val = GetType(token_arr[a + 1]);
 
 					if (!(len == 1 && -1 != Equal(TYPE_ASSIGN, val))) // assignment
 					{ // NOT
@@ -2900,9 +2900,9 @@ namespace clau_parser {
 		{
 			const int pivot_num = parse_num - 1;
 			char* buffer = nullptr;
-			long long* token_arr = nullptr;
-			long long buffer_total_len;
-			long long token_arr_len = 0;
+			int64_t* token_arr = nullptr;
+			int64_t buffer_total_len;
+			int64_t token_arr_len = 0;
 
 			{
 				int a = clock();
@@ -2914,7 +2914,7 @@ namespace clau_parser {
 				std::cout << "scan " << b - a << "ms\n";
 
 				//	{
-				//		for (long long i = 0; i < token_arr_len; ++i) {
+				//		for (int64_t i = 0; i < token_arr_len; ++i) {
 				//			std::string(buffer + GetIdx(token_arr[i]), GetLength(token_arr[i]));
 			//				if (0 == GetIdx(token_arr[i])) {
 				//				std::cout << "chk";
@@ -2940,15 +2940,15 @@ namespace clau_parser {
 			UserType _global;
 
 			bool first = true;
-			long long sum = 0;
+			int64_t sum = 0;
 
 			{
-				std::set<long long> _pivots;
-				std::vector<long long> pivots;
-				const long long num = token_arr_len; //
+				std::set<int64_t> _pivots;
+				std::vector<int64_t> pivots;
+				const int64_t num = token_arr_len; //
 
 				if (pivot_num > 0) {
-					std::vector<long long> pivot;
+					std::vector<int64_t> pivot;
 					pivots.reserve(pivot_num);
 					pivot.reserve(pivot_num);
 
@@ -2975,21 +2975,21 @@ namespace clau_parser {
 					std::vector<std::thread> thr(pivots.size() + 1);
 					std::vector<int> err(pivots.size() + 1, 0);
 					{
-						long long idx = pivots.empty() ? num - 1 : pivots[0];
-						long long _token_arr_len = idx - 0 + 1;
+						int64_t idx = pivots.empty() ? num - 1 : pivots[0];
+						int64_t _token_arr_len = idx - 0 + 1;
 
 						thr[0] = std::thread(__LoadData, buffer, token_arr, _token_arr_len, &__global[0], &option, 0, 0, &next[0], &err[0]);
 					}
 
 					for (int i = 1; i < pivots.size(); ++i) {
-						long long _token_arr_len = pivots[i] - (pivots[i - 1] + 1) + 1;
+						int64_t _token_arr_len = pivots[i] - (pivots[i - 1] + 1) + 1;
 
 						thr[i] = std::thread(__LoadData, buffer, token_arr + pivots[i - 1] + 1, _token_arr_len, &__global[i], &option, 0, 0, &next[i], &err[i]);
 
 					}
 
 					if (pivots.size() >= 1) {
-						long long _token_arr_len = num - 1 - (pivots.back() + 1) + 1;
+						int64_t _token_arr_len = num - 1 - (pivots.back() + 1) + 1;
 
 						thr[pivots.size()] = std::thread(__LoadData, buffer, token_arr + pivots.back() + 1, _token_arr_len, &__global[pivots.size()],
 							&option, 0, 0, &next[pivots.size()], &err[pivots.size()]);
