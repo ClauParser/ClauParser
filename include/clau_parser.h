@@ -14,7 +14,9 @@
 
 #include <thread>
 
-#include <intrin.h>
+#ifdef USE_SIMD
+#include <intrin.h> // linux, x86intrin
+#endif
 
 namespace clau_parser {
 	template <typename T>
@@ -234,6 +236,9 @@ namespace clau_parser {
 
 				int64_t token_arr_count = 0;
 
+				int64_t _i = 0;
+
+#ifdef USE_SIMD
 				__m256i temp;
 				__m256i _1st, _2nd, _3rd, _4th, _5th, _6th, _7th, _8th, _9th, _10th, _11th, _12th, _13th;
 
@@ -280,7 +285,7 @@ namespace clau_parser {
 				_13th = _mm256_set_epi8(ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13,
 					ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13);
 
-				int64_t _i = 0;
+				
 
 				__m256i mask1, mask2, mask3, mask4, mask5;
 				int val = -7; // 111
@@ -401,6 +406,8 @@ namespace clau_parser {
 						}
 					}
 				}
+
+#endif
 
 				//default?
 				for (; _i < length; _i = _i + 1) {
