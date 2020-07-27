@@ -188,7 +188,7 @@ namespace clau_parser {
 		static void _ScanningWithSimd(char* text, int64_t num, const int64_t length,
 			int64_t*& token_arr, size_t& _token_arr_size, const LoadDataOption& option) {
 
-			int64_t token_arr_size = 0;
+			size_t token_arr_size = 0;
 
 			{
 				int state = 0;
@@ -196,7 +196,7 @@ namespace clau_parser {
 				int64_t token_first = 0;
 				int64_t token_last = -1;
 
-				int64_t token_arr_count = 0;
+				size_t token_arr_count = 0;
 
 				int64_t _i = 0;
 
@@ -528,7 +528,7 @@ namespace clau_parser {
 		static void _Scanning(char* text, int64_t num, const int64_t length,
 			int64_t*& token_arr, size_t& _token_arr_size, const LoadDataOption& option) {
 
-			int64_t token_arr_size = 0;
+			size_t token_arr_size = 0;
 
 			{
 				int state = 0;
@@ -536,7 +536,7 @@ namespace clau_parser {
 				int64_t token_first = 0;
 				int64_t token_last = -1;
 
-				int64_t token_arr_count = 0;
+				size_t token_arr_count = 0;
 
 				for (int64_t i = 0; i < length; i = i + 1) {
 
@@ -692,12 +692,12 @@ namespace clau_parser {
 		}
 
 
-		static void ScanningNew(char* text, const int64_t length, const int thr_num,
+		static void ScanningNew(char* text, const size_t length, const int thr_num,
 			int64_t*& _token_arr, size_t& _token_arr_size, const LoadDataOption& option, bool use_simd)
 		{
 			std::vector<std::thread> thr(thr_num);
-			std::vector<int64_t> start(thr_num);
-			std::vector<int64_t> last(thr_num);
+			std::vector<size_t> start(thr_num);
+			std::vector<size_t> last(thr_num);
 
 			{
 				start[0] = 0;
@@ -705,7 +705,7 @@ namespace clau_parser {
 				for (int i = 1; i < thr_num; ++i) {
 					start[i] = length / thr_num * i;
 
-					for (int64_t x = start[i]; x <= length; ++x) {
+					for (size_t x = start[i]; x <= length; ++x) {
 						if (Utility::isWhitespace(text[x]) || '\0' == text[x] ||
 							option.Left == text[x] || option.Right == text[x] || option.Assignment == text[x]) {
 							start[i] = x;
@@ -715,7 +715,7 @@ namespace clau_parser {
 				}
 				for (int i = 0; i < thr_num - 1; ++i) {
 					last[i] = start[i + 1];
-					for (int64_t x = last[i]; x <= length; ++x) {
+					for (size_t x = last[i]; x <= length; ++x) {
 						if (Utility::isWhitespace(text[x]) || '\0' == text[x] ||
 							option.Left == text[x] || option.Right == text[x] || option.Assignment == text[x]) {
 							last[i] = x;
@@ -725,7 +725,7 @@ namespace clau_parser {
 				}
 				last[thr_num - 1] = length + 1;
 			}
-			int64_t real_token_arr_count = 0;
+			size_t real_token_arr_count = 0;
 
 			int64_t* tokens = new int64_t[length + 1];
 			int64_t token_count = 0;
@@ -749,7 +749,7 @@ namespace clau_parser {
 			int64_t qouted_start;
 			int64_t slush_start;
 
-			for (int64_t t = 0; t < thr_num; ++t) {
+			for (size_t t = 0; t < thr_num; ++t) {
 				for (size_t j = 0; j < token_arr_size[t]; ++j) {
 					const int64_t i = start[t] + j;
 
@@ -814,11 +814,11 @@ namespace clau_parser {
 		}
 
 
-		static void Scanning(char* text, const int64_t length,
+		static void Scanning(char* text, const size_t length,
 			int64_t*& _token_arr, size_t& _token_arr_size, const LoadDataOption& option) {
 
 			int64_t* token_arr = new int64_t[length + 1];
-			int64_t token_arr_size = 0;
+			size_t token_arr_size = 0;
 
 			{
 				int state = 0;
@@ -826,9 +826,9 @@ namespace clau_parser {
 				int64_t token_first = 0;
 				int64_t token_last = -1;
 
-				int64_t token_arr_count = 0;
+				size_t token_arr_count = 0;
 
-				for (int64_t i = 0; i <= length; ++i) {
+				for (size_t i = 0; i <= length; ++i) {
 					const char ch = text[i];
 
 					if (0 == state) {
@@ -954,22 +954,22 @@ namespace clau_parser {
 
 
 		static std::pair<bool, int> Scan(FILE* inFile, const int num, const clau_parser::LoadDataOption& option, int thr_num,
-			char*& _buffer, int64_t* _buffer_len, int64_t*& _token_arr, int64_t* _token_arr_len, bool use_simd)
+			char*& _buffer, size_t* _buffer_len, int64_t*& _token_arr, size_t* _token_arr_len, bool use_simd)
 		{
 			if (inFile == nullptr) {
 				return { false, 0 };
 			}
 
 			int64_t* arr_count = nullptr; //
-			int64_t arr_count_size = 0;
+			size_t arr_count_size = 0;
 
 			std::string temp;
 			char* buffer = nullptr;
-			int64_t file_length;
+			size_t file_length;
 
 			{
 				fseek(inFile, 0, SEEK_END);
-				uint64_t length = ftell(inFile);
+				size_t length = ftell(inFile);
 				fseek(inFile, 0, SEEK_SET);
 
 				Utility::BomType x = Utility::ReadBom(inFile);
@@ -1027,7 +1027,7 @@ namespace clau_parser {
 			this->use_simd = use_simd;
 		}
 	public:
-		bool operator() (const clau_parser::LoadDataOption& option, int thr_num, char*& buffer, int64_t* buffer_len, int64_t*& token_arr, int64_t* token_arr_len)
+		bool operator() (const clau_parser::LoadDataOption& option, int thr_num, char*& buffer, size_t* buffer_len, int64_t*& token_arr, size_t* token_arr_len)
 		{
 			bool x = Scan(pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len, use_simd).second > 0;
 
@@ -1799,8 +1799,8 @@ namespace clau_parser {
 
 		void InsertItemByIlist(const size_t ilist_idx, const std::string& name, const std::string& item) {
 			ilist.push_back(1);
-			for (size_t i = ilist.size() - 1; i > ilist_idx; --i) {
-				ilist[i] = ilist[i - 1];
+			for (size_t i = ilist.size(); i > ilist_idx + 1; --i) {
+				ilist[i - 1] = ilist[i - 2];
 			}
 			ilist[ilist_idx] = 1;
 
@@ -1826,8 +1826,8 @@ namespace clau_parser {
 
 			bool err = false;
 
-			for (size_t i = ilist.size() - 1; i > ilist_idx; --i) {
-				ilist[i] = ilist[i - 1];
+			for (size_t i = ilist.size(); i > ilist_idx + 1; --i) {
+				ilist[i - 1] = ilist[i - 2];
 			}
 			ilist[ilist_idx] = 1;
 
@@ -1848,14 +1848,14 @@ namespace clau_parser {
 			useSortedItemList = false;
 		}
 
-		void InsertUserTypeByIlist(const int ilist_idx, UserType&& item) {
+		void InsertUserTypeByIlist(const size_t ilist_idx, UserType&& item) {
 			ilist.push_back(2);
 			UserType* temp = new UserType(std::move(item));
 
 			temp->parent = this;
 
-			for (size_t i = ilist.size() - 1; i > ilist_idx; --i) {
-				ilist[i] = ilist[i - 1];
+			for (size_t i = ilist.size(); i > ilist_idx + 1; --i) {
+				ilist[i - 1] = ilist[i - 2];
 			}
 			ilist[ilist_idx] = 2;
 
@@ -1863,8 +1863,8 @@ namespace clau_parser {
 			size_t userTypeIndex = _GetUserTypeIndexFromIlistIndex(ilist, ilist_idx, err);
 			userTypeList.push_back(nullptr);
 			if (!err) {
-				for (size_t i = userTypeList.size() - 1; i > userTypeIndex; --i) {
-					userTypeList[i] = std::move(userTypeList[i - 1]);
+				for (size_t i = userTypeList.size(); i > userTypeIndex; --i) {
+					userTypeList[i - 1] = std::move(userTypeList[i - 2]);
 				}
 				userTypeList[userTypeIndex] = temp;
 			}
@@ -1875,15 +1875,15 @@ namespace clau_parser {
 
 			useSortedUserTypeList = false;
 		}
-		void InsertUserTypeByIlist(const int ilist_idx, const UserType& item) {
+		void InsertUserTypeByIlist(const size_t ilist_idx, const UserType& item) {
 			ilist.push_back(2);
 			UserType* temp = new UserType(item);
 
 			temp->parent = this;
 
 
-			for (size_t i = ilist.size() - 1; i > ilist_idx; --i) {
-				ilist[i] = ilist[i - 1];
+			for (size_t i = ilist.size(); i > ilist_idx + 1; --i) {
+				ilist[i - 1] = ilist[i - 2];
 			}
 			ilist[ilist_idx] = 2;
 
@@ -1891,8 +1891,8 @@ namespace clau_parser {
 			size_t  userTypeIndex = _GetUserTypeIndexFromIlistIndex(ilist, ilist_idx, err);
 			userTypeList.push_back(nullptr);
 			if (!err) {
-				for (size_t i = userTypeList.size() - 1; i > userTypeIndex; --i) {
-					userTypeList[i] = std::move(userTypeList[i - 1]);
+				for (size_t i = userTypeList.size(); i > userTypeIndex; --i) {
+					userTypeList[i - 1] = std::move(userTypeList[i - 2]);
 				}
 				userTypeList[userTypeIndex] = temp;
 			}
@@ -1903,19 +1903,19 @@ namespace clau_parser {
 			useSortedUserTypeList = false;
 		}
 
-		void ReserveIList(int64_t offset)
+		void ReserveIList(size_t offset)
 		{
 			if (offset > 0) {
 				ilist.reserve(offset);
 			}
 		}
-		void ReserveItemList(int64_t offset)
+		void ReserveItemList(size_t offset)
 		{
 			if (offset > 0) {
 				itemList.reserve(offset);
 			}
 		}
-		void ReserveUserTypeList(int64_t offset)
+		void ReserveUserTypeList(size_t offset)
 		{
 			if (offset > 0) {
 				userTypeList.reserve(offset);
@@ -2102,7 +2102,7 @@ namespace clau_parser {
 			return err;
 		}
 		/// add set Data
-		bool SetItem(const int64_t  var_idx, const std::string& value) {
+		bool SetItem(const size_t  var_idx, const std::string& value) {
 			itemList[var_idx].Set(0, value);
 			return true;
 		}
@@ -2469,8 +2469,7 @@ namespace clau_parser {
 		}
 	public:
 	};
-
-	// LoadData
+	 
 	class LoadData
 	{
 		enum {
@@ -2517,7 +2516,7 @@ namespace clau_parser {
 
 				_next->ReserveItemList(_ut->GetItemListSize());
 
-				for (int i = 0; i < _ut->GetIListSize(); ++i) {
+				for (size_t i = 0; i < _ut->GetIListSize(); ++i) {
 					if (_ut->IsUserTypeList(i)) {
 						if (_ut->GetUserTypeList(utCount)->GetName() == "#") {
 							_ut->GetUserTypeList(utCount)->SetName("");
@@ -2575,7 +2574,7 @@ namespace clau_parser {
 			clau_parser::LoadDataOption option = *_option;
 
 			int state = start_state;
-			int braceNum = 0;
+			size_t braceNum = 0;
 			std::vector< UserType* > nestedUT(1);
 			int64_t var = 0, val = 0;
 
@@ -2664,7 +2663,7 @@ namespace clau_parser {
 							int utCount = 0;
 							int itCount = 0;
 							auto max = nestedUT[braceNum]->GetIListSize();
-							for (auto i = 0; i < max; ++i) {
+							for (size_t i = 0; i < max; ++i) {
 								if (nestedUT[braceNum]->IsUserTypeList(i)) {
 									ut.GetUserTypeList(0)->AddUserTypeItem(std::move(*(nestedUT[braceNum]->GetUserTypeList(utCount))));
 									utCount++;
@@ -2860,8 +2859,8 @@ namespace clau_parser {
 			const int pivot_num = parse_num - 1;
 			char* buffer = nullptr;
 			int64_t* token_arr = nullptr;
-			int64_t buffer_total_len;
-			int64_t token_arr_len = 0;
+			size_t buffer_total_len;
+			size_t token_arr_len = 0;
 
 			{
 				int a = clock();
@@ -2915,7 +2914,7 @@ namespace clau_parser {
 						pivot.push_back(FindDivisionPlace(buffer, token_arr, (num / (pivot_num + 1)) * (i), (num / (pivot_num + 1)) * (i + 1) - 1, option));
 					}
 
-					for (int i = 0; i < pivot.size(); ++i) {
+					for (size_t i = 0; i < pivot.size(); ++i) {
 						if (pivot[i] != -1) {
 							_pivots.insert(pivot[i]);
 						}
@@ -2940,7 +2939,7 @@ namespace clau_parser {
 						thr[0] = std::thread(__LoadData, buffer, token_arr, _token_arr_len, &__global[0], &option, 0, 0, &next[0], &err[0]);
 					}
 
-					for (int i = 1; i < pivots.size(); ++i) {
+					for (size_t i = 1; i < pivots.size(); ++i) {
 						int64_t _token_arr_len = pivots[i] - (pivots[i - 1] + 1) + 1;
 
 						thr[i] = std::thread(__LoadData, buffer, token_arr + pivots[i - 1] + 1, _token_arr_len, &__global[i], &option, 0, 0, &next[i], &err[i]);
@@ -2955,11 +2954,11 @@ namespace clau_parser {
 					}
 
 					// wait
-					for (int i = 0; i < thr.size(); ++i) {
+					for (size_t i = 0; i < thr.size(); ++i) {
 						thr[i].join();
 					}
 
-					for (int i = 0; i < err.size(); ++i) {
+					for (size_t i = 0; i < err.size(); ++i) {
 						switch (err[i]) {
 						case 0:
 							break;
@@ -2996,7 +2995,7 @@ namespace clau_parser {
 							throw 3;
 						}
 
-						for (int i = 1; i < pivots.size() + 1; ++i) {
+						for (size_t i = 1; i < pivots.size() + 1; ++i) {
 							// linearly merge and error check...
 							int err = Merge(next[i - 1], &__global[i], &next[i]);
 							if (-1 == err) {
