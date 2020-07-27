@@ -1863,7 +1863,7 @@ namespace clau_parser {
 			size_t userTypeIndex = _GetUserTypeIndexFromIlistIndex(ilist, ilist_idx, err);
 			userTypeList.push_back(nullptr);
 			if (!err) {
-				for (size_t i = userTypeList.size(); i > userTypeIndex; --i) {
+				for (size_t i = userTypeList.size(); i > userTypeIndex + 1; --i) {
 					userTypeList[i - 1] = std::move(userTypeList[i - 2]);
 				}
 				userTypeList[userTypeIndex] = temp;
