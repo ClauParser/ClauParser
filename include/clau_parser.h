@@ -1810,8 +1810,8 @@ namespace clau_parser {
 			itemList.emplace_back("", std::string(""));
 
 			if (!err) {
-				for (size_t i = itemList.size() - 1; i > itemIndex; --i) {
-					itemList[i] = std::move(itemList[i - 1]);
+				for (size_t i = itemList.size(); i > itemIndex + 1; --i) {
+					itemList[i - 1] = std::move(itemList[i - 2]);
 				}
 				itemList[itemIndex] = ItemType<std::string>(name, item);
 			}
@@ -1835,8 +1835,8 @@ namespace clau_parser {
 
 			itemList.emplace_back("", std::string(""));
 			if (!err) {
-				for (size_t i = itemList.size() - 1; i > itemIndex; --i) {
-					itemList[i] = std::move(itemList[i - 1]);
+				for (size_t i = itemList.size(); i > itemIndex + 1; --i) {
+					itemList[i - 1] = std::move(itemList[i - 2]);
 				}
 				itemList[itemIndex] = ItemType<std::string>(std::move(name), std::move(item));
 			}
@@ -1891,7 +1891,7 @@ namespace clau_parser {
 			size_t  userTypeIndex = _GetUserTypeIndexFromIlistIndex(ilist, ilist_idx, err);
 			userTypeList.push_back(nullptr);
 			if (!err) {
-				for (size_t i = userTypeList.size(); i > userTypeIndex; --i) {
+				for (size_t i = userTypeList.size(); i > userTypeIndex + 1; --i) {
 					userTypeList[i - 1] = std::move(userTypeList[i - 2]);
 				}
 				userTypeList[userTypeIndex] = temp;
