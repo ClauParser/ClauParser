@@ -2284,7 +2284,7 @@ namespace clau_parser {
 				}
 			}
 		}
-		/// save2 - for more speed loading data!?
+		/// save2 - test form.
 		void Save2(std::ostream& stream, const UserType* ut, const int depth = 0) const {
 			size_t  itemListCount = 0;
 			size_t  userTypeListCount = 0;
@@ -2297,12 +2297,16 @@ namespace clau_parser {
 						//for (int k = 0; k < depth; ++k) {
 						//	stream << "\t";
 						//}
-						if (ut->itemList[itemListCount].GetName() != "")
+						if (ut->itemList[itemListCount].GetName() != "") {
+
 							stream << ut->itemList[itemListCount].GetName() << " : ";
+						}
 						stream << ut->itemList[itemListCount].Get(j);
-						if (j != ut->itemList[itemListCount].size() - 1)
+						if (j != ut->itemList[itemListCount].size() - 1) {
 							stream << " ";
+						}
 					}
+
 					if (i != ut->ilist.size() - 1) {
 						stream << " ";//"\n";
 					}
@@ -2310,8 +2314,7 @@ namespace clau_parser {
 				}
 				else if (ut->ilist[i] == 2) {
 					// std::cout << "UserTypeList" << endl;
-					if (ut->userTypeList[userTypeListCount]->GetName() != "")
-					{
+					if (ut->userTypeList[userTypeListCount]->GetName() != "") {
 						stream << ut->userTypeList[userTypeListCount]->GetName() << " ";
 					}
 					stream << "{\n";
