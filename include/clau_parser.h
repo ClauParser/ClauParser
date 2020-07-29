@@ -1167,9 +1167,9 @@ namespace clau_parser {
 		std::string ToString()const
 		{
 			if (Type::GetName().empty()) {
-				return Utility::Get(0);
+				return this->Get(0);
 			}
-			return Type::GetName() + " = " + Utility::Get(0);
+			return Type::GetName() + " = " + this->Get(0);
 		}
 	public:
 		ItemType<T>& operator=(const ItemType<T>& ta)
