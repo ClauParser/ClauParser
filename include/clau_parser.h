@@ -20,16 +20,14 @@
 
 namespace clau_parser {
 
-	class LoadDataOption
+	namespace LoadDataOption
 	{
-	public:
-		const char LineComment = '#';	// # 
-		const char Left = '{';
-		const char Right = '}';	// { }
-		const char Assignment = '=';	// = 
-	};
+		constexpr char LineComment = '#';	// # 
+		constexpr char Left = '{';  // { [
+		constexpr char Right = '}';	// } ]
+		constexpr char Assignment = '=';	// = :
+	}
 
-	
 
 	class Utility {
 	private:
@@ -142,20 +140,20 @@ namespace clau_parser {
 	public:
 
 		// todo - rename.
-		static int64_t Get(int64_t position, int64_t length, char ch, const clau_parser::LoadDataOption& option) {
+		static int64_t Get(int64_t position, int64_t length, char ch) {
 			int64_t x = (position << 32) + (length << 3) + 0;
 
 			if (length != 1) {
 				return x;
 			}
 
-			if (option.Left == ch) {
+			if (LoadDataOption::Left == ch) {
 				x += 2; // 010
 			}
-			else if (option.Right == ch) {
+			else if (LoadDataOption::Right == ch) {
 				x += 4; // 100
 			}
-			else if (option.Assignment == ch) {
+			else if (LoadDataOption::Assignment == ch) {
 				x += 6;
 			}
 
@@ -186,7 +184,7 @@ namespace clau_parser {
 
 		// use simd - experimental.. 
 		static void _ScanningWithSimd(char* text, int64_t num, const int64_t length,
-			int64_t*& token_arr, size_t& _token_arr_size, const LoadDataOption& option) {
+			int64_t*& token_arr, size_t& _token_arr_size) {
 
 			size_t token_arr_size = 0;
 
@@ -239,7 +237,7 @@ namespace clau_parser {
 				_11th = _mm256_set_epi8(ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11,
 					ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11, ch11);
 
-				char ch12 = '}'; 
+				char ch12 = '}';
 				_12th = _mm256_set_epi8(ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12,
 					ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12, ch12);
 
@@ -247,7 +245,7 @@ namespace clau_parser {
 				_13th = _mm256_set_epi8(ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13,
 					ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13, ch13);
 
-				
+
 
 				__m256i mask1, mask2, mask3, mask4, mask5;
 				int val = -7; // 111
@@ -257,27 +255,27 @@ namespace clau_parser {
 				val = -2; // 010
 				mask2 = _mm256_set_epi8(val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val,
 					val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
-				
+
 				val = -5; // 101
 				mask3 = _mm256_set_epi8(val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val,
-						val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
-				
+					val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
+
 				val = -10; // 1010
 				mask4 = _mm256_set_epi8(val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val,
 					val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
 
 				val = -15; // 1111
 				mask5 = _mm256_set_epi8(val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val,
-						val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
-				
+					val, val, val, val, val, val, val, val, val, val, val, val, val, val, val, val);
+
 				for (; _i + 32 < length; _i = _i + 32) {
 					temp = _mm256_setr_epi8(text[_i], text[_i + 1], text[_i + 2], text[_i + 3], text[_i + 4], text[_i + 5], text[_i + 6], text[_i + 7],
-						text[_i + 8], text[_i + 9], text[_i + 10], text[_i + 11], text[_i + 12], text[_i + 13], text[_i + 14], text[_i + 15], text[_i+16],
-						text[_i + 17], text[_i + 18], text[_i + 19], text[_i + 20], text[_i + 21], text[_i + 22], text[_i + 23], text[_i + 24], text[_i + 25], 
+						text[_i + 8], text[_i + 9], text[_i + 10], text[_i + 11], text[_i + 12], text[_i + 13], text[_i + 14], text[_i + 15], text[_i + 16],
+						text[_i + 17], text[_i + 18], text[_i + 19], text[_i + 20], text[_i + 21], text[_i + 22], text[_i + 23], text[_i + 24], text[_i + 25],
 						text[_i + 26], text[_i + 27], text[_i + 28], text[_i + 29], text[_i + 30], text[_i + 31]);
 
-					__m256i x1, x2, x3,x4,x5, x6, x7, x8, x9, x10, x11, x12, x13;
-					
+					__m256i x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13;
+
 					x1 = _mm256_cmpeq_epi8(temp, _1st);
 					x2 = _mm256_cmpeq_epi8(temp, _2nd);
 					x3 = _mm256_cmpeq_epi8(temp, _3rd);
@@ -291,7 +289,7 @@ namespace clau_parser {
 					x11 = _mm256_cmpeq_epi8(temp, _11th);
 					x12 = _mm256_cmpeq_epi8(temp, _12th);
 					x13 = _mm256_cmpeq_epi8(temp, _13th);
-	
+
 					x1 = _mm256_blendv_epi8(x1, mask5, x1);
 					x2 = _mm256_blendv_epi8(x2, mask4, x2);
 					x3 = _mm256_blendv_epi8(x3, mask5, x3);
@@ -301,10 +299,10 @@ namespace clau_parser {
 					x7 = _mm256_blendv_epi8(x7, mask3, x7);
 					x8 = _mm256_blendv_epi8(x8, mask3, x8);
 					x9 = _mm256_blendv_epi8(x9, mask3, x9);
-					x10 = _mm256_blendv_epi8(x10, mask3,  x10);
-					x11 = _mm256_blendv_epi8(x11, mask1,  x11);
-					x12 = _mm256_blendv_epi8(x12, mask1,  x12);
-					x13 = _mm256_blendv_epi8(x13, mask1,  x13);
+					x10 = _mm256_blendv_epi8(x10, mask3, x10);
+					x11 = _mm256_blendv_epi8(x11, mask1, x11);
+					x12 = _mm256_blendv_epi8(x12, mask1, x12);
+					x13 = _mm256_blendv_epi8(x13, mask1, x13);
 
 
 					x1 = _mm256_add_epi8(x1, x2);
@@ -313,7 +311,7 @@ namespace clau_parser {
 					x7 = _mm256_add_epi8(x7, x8);
 					x9 = _mm256_add_epi8(x9, x10);
 					x11 = _mm256_add_epi8(x11, x12);
-					
+
 					x1 = _mm256_add_epi8(x1, x3);
 					x5 = _mm256_add_epi8(x5, x7);
 					x9 = _mm256_add_epi8(x9, x11);
@@ -329,9 +327,9 @@ namespace clau_parser {
 					while (r != 0) {
 						{
 							int a = _tzcnt_u32(r); // 
-							
+
 							r = r & (r - 1);
-							
+
 							start = a;
 
 							{
@@ -340,7 +338,7 @@ namespace clau_parser {
 								if (((-x1.m256i_i8[start]) & 0b100) != 0) {
 									token_last = i - 1;
 									if (token_last - token_first + 1 > 0) {
-										token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+										token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 										token_arr_count++;
 									}
 
@@ -353,7 +351,7 @@ namespace clau_parser {
 											token_arr[num + token_arr_count] = 1;
 										}
 										const char ch = text[i];
-										token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+										token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 										token_arr_count++;
 									}
 								}
@@ -380,7 +378,7 @@ namespace clau_parser {
 					case '\"':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 
@@ -392,21 +390,21 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 							token_arr_count++;
 						}
 						break;
 					case '\\':
 					{//
 						token_arr[num + token_arr_count] = 1;
-						token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+						token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 						token_arr_count++;
 					}
 					break;
 					case '\n':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -414,14 +412,14 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 							token_arr_count++;
 						}
 						break;
 					case '\0':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -429,14 +427,14 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 							token_arr_count++;
 						}
 						break;
-					case '#':
+					case LoadDataOption::LineComment:
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -444,7 +442,7 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 							token_arr_count++;
 						}
 
@@ -456,39 +454,39 @@ namespace clau_parser {
 					case '\f':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i + 1;
 						token_last = i + 1;
 
 						break;
-					case '{':
+					case LoadDataOption::Left:
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 
 						token_first = i;
 						token_last = i;
 
-						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 						token_arr_count++;
 
 						token_first = i + 1;
 						token_last = i + 1;
 						break;
-					case '}':
+					case LoadDataOption::Right:
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i;
 						token_last = i;
 
-						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 						token_arr_count++;
 
 						token_first = i + 1;
@@ -497,13 +495,13 @@ namespace clau_parser {
 					case '=':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i;
 						token_last = i;
 
-						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 						token_arr_count++;
 
 						token_first = i + 1;
@@ -514,7 +512,7 @@ namespace clau_parser {
 				}
 
 				if (length - 1 - token_first + 1 > 0) {
-					token_arr[num + token_arr_count] = Utility::Get(token_first + num, length - 1 - token_first + 1, text[token_first], option);
+					token_arr[num + token_arr_count] = Utility::Get(token_first + num, length - 1 - token_first + 1, text[token_first]);
 					token_arr_count++;
 				}
 				token_arr_size = token_arr_count;
@@ -526,7 +524,7 @@ namespace clau_parser {
 		}
 
 		static void _Scanning(char* text, int64_t num, const int64_t length,
-			int64_t*& token_arr, size_t& _token_arr_size, const LoadDataOption& option) {
+			int64_t*& token_arr, size_t& _token_arr_size) {
 
 			size_t token_arr_size = 0;
 
@@ -538,7 +536,7 @@ namespace clau_parser {
 
 				size_t token_arr_count = 0;
 
-				for (int64_t i = 0; i < length; i = i + 1) {
+				for (int64_t i = 0; i < length; ++i) {
 
 					const char ch = text[i];
 
@@ -546,7 +544,7 @@ namespace clau_parser {
 					case '\"':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 
@@ -558,21 +556,21 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 							token_arr_count++;
 						}
 						break;
 					case '\\':
 					{//
 						token_arr[num + token_arr_count] = 1;
-						token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+						token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 						token_arr_count++;
 					}
 					break;
 					case '\n':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -580,14 +578,14 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 							token_arr_count++;
 						}
 						break;
 					case '\0':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -595,14 +593,14 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 							token_arr_count++;
 						}
 						break;
 					case '#':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -610,7 +608,7 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch, option);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
 							token_arr_count++;
 						}
 
@@ -622,7 +620,7 @@ namespace clau_parser {
 					case '\f':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i + 1;
@@ -632,14 +630,14 @@ namespace clau_parser {
 					case '{':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 
 						token_first = i;
 						token_last = i;
 
-						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 						token_arr_count++;
 
 						token_first = i + 1;
@@ -648,13 +646,13 @@ namespace clau_parser {
 					case '}':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i;
 						token_last = i;
 
-						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 						token_arr_count++;
 
 						token_first = i + 1;
@@ -663,13 +661,13 @@ namespace clau_parser {
 					case '=':
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 						}
 						token_first = i;
 						token_last = i;
 
-						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first], option);
+						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
 						token_arr_count++;
 
 						token_first = i + 1;
@@ -680,7 +678,7 @@ namespace clau_parser {
 				}
 
 				if (length - 1 - token_first + 1 > 0) {
-					token_arr[num + token_arr_count] = Utility::Get(token_first + num, length - 1 - token_first + 1, text[token_first], option);
+					token_arr[num + token_arr_count] = Utility::Get(token_first + num, length - 1 - token_first + 1, text[token_first]);
 					token_arr_count++;
 				}
 				token_arr_size = token_arr_count;
@@ -693,7 +691,7 @@ namespace clau_parser {
 
 
 		static void ScanningNew(char* text, const size_t length, const int thr_num,
-			int64_t*& _token_arr, size_t& _token_arr_size, const LoadDataOption& option, bool use_simd)
+			int64_t*& _token_arr, size_t& _token_arr_size, bool use_simd)
 		{
 			std::vector<std::thread> thr(thr_num);
 			std::vector<size_t> start(thr_num);
@@ -707,7 +705,7 @@ namespace clau_parser {
 
 					for (size_t x = start[i]; x <= length; ++x) {
 						if (Utility::isWhitespace(text[x]) || '\0' == text[x] ||
-							option.Left == text[x] || option.Right == text[x] || option.Assignment == text[x]) {
+							LoadDataOption::Left == text[x] || LoadDataOption::Right == text[x] || LoadDataOption::Assignment == text[x]) {
 							start[i] = x;
 							break;
 						}
@@ -717,7 +715,7 @@ namespace clau_parser {
 					last[i] = start[i + 1];
 					for (size_t x = last[i]; x <= length; ++x) {
 						if (Utility::isWhitespace(text[x]) || '\0' == text[x] ||
-							option.Left == text[x] || option.Right == text[x] || option.Assignment == text[x]) {
+							LoadDataOption::Left == text[x] || LoadDataOption::Right == text[x] || LoadDataOption::Assignment == text[x]) {
 							last[i] = x;
 							break;
 						}
@@ -734,10 +732,10 @@ namespace clau_parser {
 
 			for (int i = 0; i < thr_num; ++i) {
 				if (use_simd) {
-					thr[i] = std::thread(_ScanningWithSimd, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]), option);
+					thr[i] = std::thread(_ScanningWithSimd, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]));
 				}
 				else {
-					thr[i] = std::thread(_Scanning, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]), option);
+					thr[i] = std::thread(_Scanning, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]));
 				}
 			}
 
@@ -763,7 +761,7 @@ namespace clau_parser {
 							state = 1;
 							qouted_start = i;
 						}
-						else if (0 == state && option.LineComment == ch) {
+						else if (0 == state && LoadDataOption::LineComment == ch) {
 							state = 2;
 						}
 						else if (1 == state && '\\' == ch) {
@@ -779,7 +777,7 @@ namespace clau_parser {
 
 								len = Utility::GetIdx(tokens[i]) - idx + 1;
 
-								tokens[real_token_arr_count] = Utility::Get(idx, len, text[idx], option);
+								tokens[real_token_arr_count] = Utility::Get(idx, len, text[idx]);
 								real_token_arr_count++;
 							}
 						}
@@ -802,7 +800,7 @@ namespace clau_parser {
 
 			{
 				if (0 != state) {
-					std::cout << "[ERRROR] state [" << state << "] is not zero \n";
+					std::cout << "[ERROR] state [" << state << "] is not zero \n";
 				}
 			}
 
@@ -815,7 +813,7 @@ namespace clau_parser {
 
 
 		static void Scanning(char* text, const size_t length,
-			int64_t*& _token_arr, size_t& _token_arr_size, const LoadDataOption& option) {
+			int64_t*& _token_arr, size_t& _token_arr_size) {
 
 			int64_t* token_arr = new int64_t[length + 1];
 			size_t token_arr_size = 0;
@@ -832,10 +830,10 @@ namespace clau_parser {
 					const char ch = text[i];
 
 					if (0 == state) {
-						if (option.LineComment == ch) {
+						if (LoadDataOption::LineComment == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
 
@@ -844,7 +842,7 @@ namespace clau_parser {
 						else if ('\"' == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
 
@@ -856,54 +854,54 @@ namespace clau_parser {
 						else if (Utility::isWhitespace(ch) || '\0' == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
 							token_first = i + 1;
 							token_last = i + 1;
 						}
-						else if (option.Left == ch) {
+						else if (LoadDataOption::Left == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
 
 							token_first = i;
 							token_last = i;
 
-							token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+							token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 
 							token_first = i + 1;
 							token_last = i + 1;
 						}
-						else if (option.Right == ch) {
+						else if (LoadDataOption::Right == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
 							token_first = i;
 							token_last = i;
 
-							token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+							token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 
 							token_first = i + 1;
 							token_last = i + 1;
 
 						}
-						else if (option.Assignment == ch) {
+						else if (LoadDataOption::Assignment == ch) {
 							token_last = i - 1;
 							if (token_last - token_first + 1 > 0) {
-								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+								token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 								token_arr_count++;
 							}
 							token_first = i;
 							token_last = i;
 
-							token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+							token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 
 							token_first = i + 1;
@@ -917,7 +915,7 @@ namespace clau_parser {
 						else if ('\"' == ch) {
 							token_last = i;
 
-							token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first], option);
+							token_arr[token_arr_count] = Utility::Get(token_first, token_last - token_first + 1, text[token_first]);
 							token_arr_count++;
 
 							token_first = i + 1;
@@ -953,7 +951,7 @@ namespace clau_parser {
 		}
 
 
-		static std::pair<bool, int> Scan(FILE* inFile, const int num, const clau_parser::LoadDataOption& option, int thr_num,
+		static std::pair<bool, int> Scan(FILE* inFile, int thr_num,
 			char*& _buffer, size_t* _buffer_len, int64_t*& _token_arr, size_t* _token_arr_len, bool use_simd)
 		{
 			if (inFile == nullptr) {
@@ -991,19 +989,16 @@ namespace clau_parser {
 				buffer[file_length] = '\0';
 
 				{
-					//int a = clock();
 					int64_t* token_arr;
 					size_t token_arr_size;
 
 					if (thr_num == 1) {
-						Scanning(buffer, file_length, token_arr, token_arr_size, option);
+						Scanning(buffer, file_length, token_arr, token_arr_size);
 					}
 					else {
-						ScanningNew(buffer, file_length, thr_num, token_arr, token_arr_size, option, use_simd);
+						ScanningNew(buffer, file_length, thr_num, token_arr, token_arr_size,  use_simd);
 					}
 
-					//int b = clock();
-				//	std::cout << b - a << "ms\n";
 					_buffer = buffer;
 					_token_arr = token_arr;
 					*_token_arr_len = token_arr_size;
@@ -1018,18 +1013,15 @@ namespace clau_parser {
 		FILE* pInFile;
 		bool use_simd;
 	public:
-		int Num;
-	public:
 		explicit InFileReserver(FILE* inFile, bool use_simd)
 		{
 			pInFile = inFile;
-			Num = 1;
 			this->use_simd = use_simd;
 		}
 	public:
-		bool operator() (const clau_parser::LoadDataOption& option, int thr_num, char*& buffer, size_t* buffer_len, int64_t*& token_arr, size_t* token_arr_len)
+		bool operator() (int thr_num, char*& buffer, size_t* buffer_len, int64_t*& token_arr, size_t* token_arr_len)
 		{
-			bool x = Scan(pInFile, Num, option, thr_num, buffer, buffer_len, token_arr, token_arr_len, use_simd).second > 0;
+			bool x = Scan(pInFile, thr_num, buffer, buffer_len, token_arr, token_arr_len, use_simd).second > 0;
 
 			return x;
 		}
@@ -1114,7 +1106,7 @@ namespace clau_parser {
 			//
 		}
 		explicit ItemType(std::string&& name, T&& value, const bool valid = true)
-			:Type(move(name), valid), data(move(value)), inited(true)
+			:Type(std::move(name), valid), data(move(value)), inited(true)
 		{
 			//
 		}
@@ -2472,9 +2464,10 @@ namespace clau_parser {
 		}
 	public:
 	};
-	 
+
 	class LoadData
 	{
+
 		enum {
 			TYPE_LEFT = 1, // 01
 			TYPE_RIGHT = 2, // 10
@@ -2561,7 +2554,7 @@ namespace clau_parser {
 		}
 
 	private:
-		static bool __LoadData(const char* buffer, const int64_t* token_arr, int64_t token_arr_len, UserType* _global, const clau_parser::LoadDataOption* _option,
+		static bool __LoadData(const char* buffer, const int64_t* token_arr, int64_t token_arr_len, UserType* _global,
 			int start_state, int last_state, UserType** next, int* err)
 		{
 
@@ -2574,7 +2567,6 @@ namespace clau_parser {
 			}
 
 			UserType& global = *_global;
-			clau_parser::LoadDataOption option = *_option;
 
 			int state = start_state;
 			size_t braceNum = 0;
@@ -2628,7 +2620,7 @@ namespace clau_parser {
 						braceNum++;
 
 						/// new nestedUT
-						if (nestedUT.size() == braceNum) { /// changed 2014.01.23..
+						if (nestedUT.size() == braceNum) { 
 							nestedUT.push_back(nullptr);
 						}
 
@@ -2824,7 +2816,7 @@ namespace clau_parser {
 		}
 
 
-		static int64_t FindDivisionPlace(const char* buffer, const int64_t* token_arr, int64_t start, int64_t last, const clau_parser::LoadDataOption& option)
+		static int64_t FindDivisionPlace(const char* buffer, const int64_t* token_arr, int64_t start, int64_t last)
 		{
 			for (int64_t a = last; a >= start; --a) {
 				int64_t len = Utility::GetLength(token_arr[a]);
@@ -2857,7 +2849,7 @@ namespace clau_parser {
 			return -1;
 		}
 
-		static bool _LoadData(InFileReserver& reserver, UserType& global, clau_parser::LoadDataOption option, const int lex_thr_num, const int parse_num) // first, strVec.empty() must be true!!
+		static bool _LoadData(InFileReserver& reserver, UserType& global, const int lex_thr_num, const int parse_num) // first, strVec.empty() must be true!!
 		{
 			const int pivot_num = parse_num - 1;
 			char* buffer = nullptr;
@@ -2868,7 +2860,7 @@ namespace clau_parser {
 			{
 				int a = clock();
 
-				bool success = reserver(option, lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
+				bool success = reserver( lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
 
 
 				int b = clock();
@@ -2914,7 +2906,7 @@ namespace clau_parser {
 					pivot.reserve(pivot_num);
 
 					for (int i = 0; i < pivot_num; ++i) {
-						pivot.push_back(FindDivisionPlace(buffer, token_arr, (num / (pivot_num + 1)) * (i), (num / (pivot_num + 1)) * (i + 1) - 1, option));
+						pivot.push_back(FindDivisionPlace(buffer, token_arr, (num / (pivot_num + 1)) * (i), (num / (pivot_num + 1)) * (i + 1) - 1));
 					}
 
 					for (size_t i = 0; i < pivot.size(); ++i) {
@@ -2939,13 +2931,13 @@ namespace clau_parser {
 						int64_t idx = pivots.empty() ? num - 1 : pivots[0];
 						int64_t _token_arr_len = idx - 0 + 1;
 
-						thr[0] = std::thread(__LoadData, buffer, token_arr, _token_arr_len, &__global[0], &option, 0, 0, &next[0], &err[0]);
+						thr[0] = std::thread(__LoadData, buffer, token_arr, _token_arr_len, &__global[0], 0, 0, &next[0], &err[0]);
 					}
 
 					for (size_t i = 1; i < pivots.size(); ++i) {
 						int64_t _token_arr_len = pivots[i] - (pivots[i - 1] + 1) + 1;
 
-						thr[i] = std::thread(__LoadData, buffer, token_arr + pivots[i - 1] + 1, _token_arr_len, &__global[i], &option, 0, 0, &next[i], &err[i]);
+						thr[i] = std::thread(__LoadData, buffer, token_arr + pivots[i - 1] + 1, _token_arr_len, &__global[i], 0, 0, &next[i], &err[i]);
 
 					}
 
@@ -2953,7 +2945,7 @@ namespace clau_parser {
 						int64_t _token_arr_len = num - 1 - (pivots.back() + 1) + 1;
 
 						thr[pivots.size()] = std::thread(__LoadData, buffer, token_arr + pivots.back() + 1, _token_arr_len, &__global[pivots.size()],
-							&option, 0, 0, &next[pivots.size()], &err[pivots.size()]);
+							0, 0, &next[pivots.size()], &err[pivots.size()]);
 					}
 
 					// wait
@@ -3048,8 +3040,8 @@ namespace clau_parser {
 
 			bool success = true;
 			FILE* inFile;
-		
-	inFile =fopen(fileName.c_str(), "rb");
+
+			inFile = fopen(fileName.c_str(), "rb");
 
 
 			if (!inFile)
@@ -3062,13 +3054,11 @@ namespace clau_parser {
 			try {
 
 				InFileReserver ifReserver(inFile, use_simd);
-				clau_parser::LoadDataOption option;
-
 				char* buffer = nullptr;
-				ifReserver.Num = 1 << 19;
+
 				//	strVec.reserve(ifReserver.Num);
 				// cf) empty file..
-				if (false == _LoadData(ifReserver, globalTemp, option, lex_thr_num, parse_thr_num))
+				if (false == _LoadData(ifReserver, globalTemp,  lex_thr_num, parse_thr_num))
 				{
 					fclose(inFile);
 					return false; // return true?
@@ -3097,7 +3087,7 @@ namespace clau_parser {
 			global = std::move(globalTemp);
 			return true;
 		}
-		// SaveQuery
+		
 		static bool SaveWizDB(const UserType& global, const std::string& fileName, const bool append = false) {
 			std::ofstream outFile;
 			if (fileName.empty()) { return false; }
