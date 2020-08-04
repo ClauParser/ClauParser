@@ -2,6 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 //#define USE_SIMD
 //#include <vld.h>
+#include <chrono>
 
 #include <iostream>
 
@@ -57,13 +58,16 @@ int main(void)
 	for (int i = 0; i <= 32; ++i) {
 		clau_parser::UserType global;
 
-		int a = clock();
+		auto start = std::chrono::steady_clock::now();
+
 		std::cout << i << "th \n";
 		clau_parser::LoadData::LoadDataFromFile(fileName, global, i, i);
 
-		int b = clock();
 
-		std::cout << b - a << "ms" << "\n";
+		auto last = std::chrono::steady_clock::now();
+		auto dur = duration_cast<std::chrono::milliseconds>(last - start);
+
+		std::cout << dur.count() << "ms" << "\n";
 	
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
