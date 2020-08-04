@@ -54,7 +54,7 @@ int main(void)
 	std::string fileName = "input.eu4"; 
 	
 	std::cin >> fileName;
-
+	/*
 	for (int i = 0; i <= 32; ++i) {
 		clau_parser::UserType global;
 
@@ -71,6 +71,7 @@ int main(void)
 	
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
+	*/
 
 	for (int i = 0; i <= 4; ++i) {
 		clau_parser::UserType global;
