@@ -65,7 +65,7 @@ int main(void)
 
 
 		auto last = std::chrono::steady_clock::now();
-		auto dur = duration_cast<std::chrono::milliseconds>(last - start);
+		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(last - start);
 
 		std::cout << dur.count() << "ms" << "\n";
 	
@@ -75,13 +75,14 @@ int main(void)
 	for (int i = 0; i <= 4; ++i) {
 		clau_parser::UserType global;
 
-		int a = clock();
+
+		auto start = std::chrono::steady_clock::now();
 
 		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0);
+		auto last = std::chrono::steady_clock::now();
+		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(last - start);
 
-		int b = clock();
-
-		std::cout << b - a << "ms" << "\n";
+		std::cout << dur.count() << "ms" << "\n";
 
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
