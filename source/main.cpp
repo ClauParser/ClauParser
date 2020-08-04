@@ -54,12 +54,12 @@ int main(void)
 	
 	std::cin >> fileName;
 
-	for (int i = 0; i <= 4; ++i) {
+	for (int i = 0; i <= 32; ++i) {
 		clau_parser::UserType global;
 
 		int a = clock();
-
-		clau_parser::LoadData::LoadDataFromFile(fileName, global, 1, 1);
+		std::cout << i << "th \n";
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, i, i);
 
 		int b = clock();
 
