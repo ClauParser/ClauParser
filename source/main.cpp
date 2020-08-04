@@ -73,13 +73,13 @@ int main(void)
 	}
 	*/
 
-	for (int i = 0; i <= 4; ++i) {
+	for (int i = 0; i < 8; ++i) {
 		clau_parser::UserType global;
 
 
 		auto start = std::chrono::steady_clock::now();
 
-		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0);
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, i);
 		auto last = std::chrono::steady_clock::now();
 		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(last - start);
 
