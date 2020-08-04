@@ -27,7 +27,7 @@ int main(void)
 		wiz::UserType ut("Name");
 		wiz::UserType global("Name");
 
-		global.AddUserTypeItem(ut); // ³»ºÎ¿¡¼­ µ¿ÀûÇÒ´ç
+		global.AddUserTypeItem(ut); // Â³Â»ÂºÃŽÂ¿Â¡Â¼Â­ ÂµÂ¿Ã€Ã»Ã‡Ã’Â´Ã§
 	}
 
 
@@ -73,7 +73,21 @@ int main(void)
 	}
 	*/
 
-	for (int i = 0; i < 8; ++i) {
+	for (int i = 0; i < 3; ++i) {
+		clau_parser::UserType global;
+
+
+		auto start = std::chrono::steady_clock::now();
+
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0);
+		auto last = std::chrono::steady_clock::now();
+		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(last - start);
+
+		std::cout << dur.count() << "ms" << "\n";
+
+		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
+	}
+	for (int i = 0; i < 32; ++i) {
 		clau_parser::UserType global;
 
 
@@ -87,6 +101,5 @@ int main(void)
 
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
-
 	return 0;
 }
