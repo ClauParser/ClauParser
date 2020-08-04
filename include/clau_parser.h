@@ -802,7 +802,7 @@ namespace clau_parser {
 			auto dur2 = std::chrono::duration_cast<std::chrono::milliseconds>(c - b);
 			
 			std::cout << dur.count() << "ms\n";
-			std::cout << dur.count() << "ms\n";
+			std::cout << dur2.count() << "ms\n";
 
 			{
 				if (0 != state) {
