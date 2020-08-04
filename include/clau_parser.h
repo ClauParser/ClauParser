@@ -2956,10 +2956,18 @@ namespace clau_parser {
 							0, 0, &next[pivots.size()], &err[pivots.size()]);
 					}
 
+
+					auto a = std::chrono::steady_clock::now();
+
 					// wait
 					for (size_t i = 0; i < thr.size(); ++i) {
 						thr[i].join();
 					}
+
+
+					auto b = std::chrono::steady_clock::now();
+					auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
+					std::cout << "parse1 " << dur.count() << "ms\n";
 
 					for (size_t i = 0; i < err.size(); ++i) {
 						switch (err[i]) {
@@ -3019,6 +3027,10 @@ namespace clau_parser {
 					}
 
 					before_next = next.back();
+
+					auto c = std::chrono::steady_clock::now();
+					auto dur2 = std::chrono::duration_cast<std::chrono::nanoseconds>(c - b);
+					std::cout << "parse2 " << dur2.count() << "ns\n";
 				}
 			}
 
