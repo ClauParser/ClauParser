@@ -798,8 +798,8 @@ namespace clau_parser {
 				}
 			}
 			auto c = std::chrono::steady_clock::now();
-			auto dur = duration_cast<std::chrono::milliseconds>(b - a);
-			auto dur2 = duration_cast<std::chrono::milliseconds>(c - b);
+			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
+			auto dur2 = std::chrono::duration_cast<std::chrono::milliseconds>(c - b);
 			
 			std::cout << dur.count() << "ms\n";
 			std::cout << dur.count() << "ms\n";
@@ -2871,7 +2871,7 @@ namespace clau_parser {
 
 
 				auto b = std::chrono::steady_clock::now();
-				auto dur = duration_cast<std::chrono::milliseconds>(b - a);
+				auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
 				std::cout << "scan " << dur.count() << "ms\n";
 
 				//	{
