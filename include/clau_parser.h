@@ -729,7 +729,7 @@ namespace clau_parser {
 			int64_t token_count = 0;
 
 			std::vector<size_t> token_arr_size(thr_num);
-
+			auto a = std::chrono::steady_clock::now();
 			for (int i = 0; i < thr_num; ++i) {
 				if (use_simd) {
 					thr[i] = std::thread(_ScanningWithSimd, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]));
@@ -742,7 +742,7 @@ namespace clau_parser {
 			for (int i = 0; i < thr_num; ++i) {
 				thr[i].join();
 			}
-
+			auto b = std::chrono::steady_clock::now();
 			int state = 0;
 			int64_t qouted_start;
 			int64_t slush_start;
@@ -797,6 +797,12 @@ namespace clau_parser {
 					}
 				}
 			}
+			auto c = std::chrono::steady_clock::now();
+			auto dur = duration_cast<std::chrono::milliseconds>(b - a);
+			auto dur2 = duration_cast<std::chrono::milliseconds>(c - b);
+			
+			std::cout << dur.count() << "ms\n";
+			std::cout << dur.count() << "ms\n";
 
 			{
 				if (0 != state) {
@@ -996,7 +1002,7 @@ namespace clau_parser {
 						Scanning(buffer, file_length, token_arr, token_arr_size);
 					}
 					else {
-						ScanningNew(buffer, file_length, thr_num, token_arr, token_arr_size,  use_simd);
+						ScanningNew(buffer, file_length, thr_num, token_arr, token_arr_size, use_simd);
 					}
 
 					_buffer = buffer;
@@ -2620,7 +2626,7 @@ namespace clau_parser {
 						braceNum++;
 
 						/// new nestedUT
-						if (nestedUT.size() == braceNum) { 
+						if (nestedUT.size() == braceNum) {
 							nestedUT.push_back(nullptr);
 						}
 
@@ -2858,13 +2864,15 @@ namespace clau_parser {
 			size_t token_arr_len = 0;
 
 			{
-				int a = clock();
 
-				bool success = reserver( lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
+				auto a = std::chrono::steady_clock::now();
+
+				bool success = reserver(lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
 
 
-				int b = clock();
-				std::cout << "scan " << b - a << "ms\n";
+				auto b = std::chrono::steady_clock::now();
+				auto dur = duration_cast<std::chrono::milliseconds>(b - a);
+				std::cout << "scan " << dur.count() << "ms\n";
 
 				//	{
 				//		for (int64_t i = 0; i < token_arr_len; ++i) {
@@ -3058,7 +3066,7 @@ namespace clau_parser {
 
 				//	strVec.reserve(ifReserver.Num);
 				// cf) empty file..
-				if (false == _LoadData(ifReserver, globalTemp,  lex_thr_num, parse_thr_num))
+				if (false == _LoadData(ifReserver, globalTemp, lex_thr_num, parse_thr_num))
 				{
 					fclose(inFile);
 					return false; // return true?
@@ -3087,7 +3095,7 @@ namespace clau_parser {
 			global = std::move(globalTemp);
 			return true;
 		}
-		
+
 		static bool SaveWizDB(const UserType& global, const std::string& fileName, const bool append = false) {
 			std::ofstream outFile;
 			if (fileName.empty()) { return false; }
