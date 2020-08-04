@@ -1,16 +1,18 @@
 
 #define _CRT_SECURE_NO_WARNINGS
+//#define USE_SIMD
 //#include <vld.h>
 
 #include <iostream>
 
-#include "clau_parser.h"
+#include "clau_parser.h" // need C++17
 
 #include <ctime>
 
 
 int main(void)
 {
+
 	/*
 	{
 		wiz::UserType ut("Name");
@@ -52,26 +54,26 @@ int main(void)
 	
 	std::cin >> fileName;
 
-	for (int i = 1; i <= 8; ++i) {
+	for (int i = 0; i <= 4; ++i) {
 		clau_parser::UserType global;
 
 		int a = clock();
 
-		clau_parser::LoadData::LoadDataFromFile(fileName, global, i, 0);
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, 1, 1);
 
 		int b = clock();
 
 		std::cout << b - a << "ms" << "\n";
-
-		//	clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
+	
+		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
 
-	/*	{
+	for (int i = 0; i <= 4; ++i) {
 		clau_parser::UserType global;
 
 		int a = clock();
 
-		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0, false);
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0);
 
 		int b = clock();
 
@@ -79,10 +81,6 @@ int main(void)
 
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
-	*/
-
-	//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
-	
 
 	return 0;
 }
