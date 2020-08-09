@@ -492,7 +492,7 @@ namespace clau_parser {
 						token_first = i + 1;
 						token_last = i + 1;
 						break;
-					case '=':
+					case LoadDataOption::Assignment:
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
@@ -627,7 +627,7 @@ namespace clau_parser {
 						token_last = i + 1;
 
 						break;
-					case '{':
+					case LoadDataOption::Left:
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
@@ -643,7 +643,7 @@ namespace clau_parser {
 						token_first = i + 1;
 						token_last = i + 1;
 						break;
-					case '}':
+					case LoadDataOption::Right:
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
@@ -658,7 +658,7 @@ namespace clau_parser {
 						token_first = i + 1;
 						token_last = i + 1;
 						break;
-					case '=':
+					case LoadDataOption::Assignment:
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
@@ -800,7 +800,7 @@ namespace clau_parser {
 			auto c = std::chrono::steady_clock::now();
 			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
 			auto dur2 = std::chrono::duration_cast<std::chrono::milliseconds>(c - b);
-			
+
 			std::cout << dur.count() << "ms\n";
 			std::cout << dur2.count() << "ms\n";
 
