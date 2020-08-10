@@ -161,7 +161,7 @@ namespace clau_parser {
 		}
 
 		static int64_t GetIdx(int64_t x) {
-			return (x >> 32) & 0x00000000FFFFFFFF;
+			return (x >> 32) & 0x7FFFFFFF;
 		}
 		static int64_t GetLength(int64_t x) {
 			return (x & 0x00000000FFFFFFF8) >> 3;
@@ -597,7 +597,7 @@ namespace clau_parser {
 							token_arr_count++;
 						}
 						break;
-					case '#':
+					case LoadDataOption::LineComment:
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
@@ -688,6 +688,49 @@ namespace clau_parser {
 				_token_arr_size = token_arr_size;
 			}
 		}
+		static void _Scanning2(char* text, int64_t* tokens, 
+			const std::vector<size_t> start, const std::vector<size_t> length,
+			const size_t idx, const std::vector<int> vec,
+			int64_t*& tokens2) {
+			
+			size_t count = 0;
+			for (size_t t = 0; t < length[idx]; ++t) {
+				size_t i = start[idx] + t;
+
+				if (tokens[i] < 0) {
+					if ('\"' == text[Utility::GetIdx(tokens[i])]) {
+						size_t _i = i - 1;
+						size_t _idx = idx;
+
+						if (_i < start[_idx]) {
+							_idx--;
+							_i = start[_idx] + length[_idx] - 1;
+						}
+
+						while ('\"' != text[Utility::GetIdx(tokens[_i])]) {
+							_i--;
+							if (_i < start[_idx]) {
+								_idx--;
+								_i = start[_idx] + length[_idx] - 1;
+							}
+						}
+						{
+							int64_t _idx = Utility::GetIdx(tokens[_i]);
+							int64_t _len = Utility::GetLength(tokens[_i]);
+
+							_len = Utility::GetIdx(tokens[i]) - _idx + 1;
+
+							tokens2[vec[idx] + count] = Utility::Get(_idx, _len, text[_idx]);
+						}
+					}
+					else {
+						tokens2[vec[idx] + count] = tokens[i];
+					}
+					count++;
+				}
+			}
+		}
+
 
 
 		static void ScanningNew(char* text, const size_t length, const int thr_num,
@@ -747,7 +790,10 @@ namespace clau_parser {
 			int64_t qouted_start;
 			int64_t slush_start;
 
+			std::vector<int> vec(thr_num + 1, 0);
+
 			for (size_t t = 0; t < thr_num; ++t) {
+				int count = 0;
 				for (size_t j = 0; j < token_arr_size[t]; ++j) {
 					const int64_t i = start[t] + j;
 
@@ -771,14 +817,15 @@ namespace clau_parser {
 						else if (1 == state && '\"' == ch) {
 							state = 0;
 
-							{
+							tokens[i] |= 0x8000000000000000;
+							count++;
+
+							if (false) {
 								int64_t idx = Utility::GetIdx(tokens[qouted_start]);
 								int64_t len = Utility::GetLength(tokens[qouted_start]);
 
 								len = Utility::GetIdx(tokens[i]) - idx + 1;
 
-								tokens[real_token_arr_count] = Utility::Get(idx, len, text[idx]);
-								real_token_arr_count++;
 							}
 						}
 						else if (3 == state) {
@@ -792,17 +839,49 @@ namespace clau_parser {
 						}
 					}
 					else if (0 == state) { // 
-						tokens[real_token_arr_count] = tokens[i];
-						real_token_arr_count++;
+						tokens[i] |= 0x8000000000000000;
+						count++;
+
+						if (false) {
+							tokens[real_token_arr_count] = tokens[i];
+							real_token_arr_count++;
+						}
 					}
 				}
+
+				vec[1 + t] = count;
 			}
+			int sum = 0;
+			{
+				for (int i = 1; i < vec.size(); ++i) {
+					sum += vec[i];
+				}
+				for (int i = 1; i < vec.size(); ++i) {
+					vec[i] += vec[i - 1];
+				}
+			}
+
 			auto c = std::chrono::steady_clock::now();
+			int64_t* tokens2 = new int64_t[sum];
+			real_token_arr_count = sum;
+
+			for (int i = 0; i < thr_num; ++i) {
+				thr[i] = std::thread(_Scanning2, text, tokens, start, token_arr_size, i, vec, std::ref(tokens2));
+			}
+
+			for (int i = 0; i < thr_num; ++i) {
+				thr[i].join();
+			}
+
+			auto d = std::chrono::steady_clock::now();
+
 			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
 			auto dur2 = std::chrono::duration_cast<std::chrono::milliseconds>(c - b);
+			auto dur3 = std::chrono::duration_cast<std::chrono::milliseconds>(d - c);
 
 			std::cout << dur.count() << "ms\n";
 			std::cout << dur2.count() << "ms\n";
+			std::cout << dur3.count() << "ms\n";
 
 			{
 				if (0 != state) {
@@ -810,9 +889,15 @@ namespace clau_parser {
 				}
 			}
 
+			if (false) {
+				for (int i = 0; i < real_token_arr_count; ++i) {
+					Utility::PrintToken(text, tokens2[i]);
+				}
+			}
 
 			{
-				_token_arr = tokens;
+				delete[] tokens;
+				_token_arr = tokens2;
 				_token_arr_size = real_token_arr_count;
 			}
 		}
