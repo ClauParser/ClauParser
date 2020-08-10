@@ -53,7 +53,7 @@ int main(void)
 	
 	std::string fileName = "input.eu4"; 
 	
-	std::cin >> fileName;
+	//std::cin >> fileName;
 	/*
 	for (int i = 0; i <= 32; ++i) {
 		clau_parser::UserType global;
