@@ -176,6 +176,9 @@ namespace clau_parser {
 		static void PrintToken(const char* buffer, int64_t token) {
 			std::cout << std::string(buffer + Utility::GetIdx(token), Utility::GetLength(token));
 		}
+		static void PrintToken(std::ostream& output, const char* buffer, int64_t token) {
+			output << std::string(buffer + Utility::GetIdx(token), Utility::GetLength(token));
+		}
 	};
 
 	class InFileReserver
@@ -826,6 +829,8 @@ namespace clau_parser {
 
 								len = Utility::GetIdx(tokens[i]) - idx + 1;
 
+								tokens[real_token_arr_count] = Utility::Get(idx, len, '\"');
+								real_token_arr_count++;
 							}
 						}
 						else if (3 == state) {
@@ -890,9 +895,12 @@ namespace clau_parser {
 			}
 
 			if (false) {
+				std::ofstream outFile("output2.eu4");
 				for (int i = 0; i < real_token_arr_count; ++i) {
-					Utility::PrintToken(text, tokens2[i]);
+					Utility::PrintToken(outFile, text, tokens2[i]);
+					outFile << "\n";
 				}
+				outFile.close();
 			}
 
 			{
