@@ -13,7 +13,7 @@
 
 int main(void)
 {
-
+	
 	/*
 	{
 		wiz::UserType ut("Name");
@@ -27,7 +27,7 @@ int main(void)
 		wiz::UserType ut("Name");
 		wiz::UserType global("Name");
 
-		global.AddUserTypeItem(ut); // Â³Â»ÂºÃŽÂ¿Â¡Â¼Â­ ÂµÂ¿Ã€Ã»Ã‡Ã’Â´Ã§
+		global.AddUserTypeItem(ut); // ³»ºÎ¿¡¼­ µ¿ÀûÇÒ´ç
 	}
 
 
@@ -72,15 +72,6 @@ int main(void)
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
 	*/
-	
-	{
-		clau_parser::UserType global;
-		
-		clau_parser::LoadData::LoadDataFromFile("test.txt", global, 0, 0);
-		
-		std::cout << "chk\n";
-	}
-	
 	for (int i = 0; i < 3; ++i) {
 		clau_parser::UserType global;
 
@@ -95,7 +86,8 @@ int main(void)
 
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
-	for (int i = 0; i < 32; ++i) {
+
+	for (int i = 0; i <= 32; ++i) {
 		clau_parser::UserType global;
 
 
@@ -109,5 +101,6 @@ int main(void)
 
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
+
 	return 0;
 }
