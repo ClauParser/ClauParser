@@ -1,6 +1,6 @@
 
 #define _CRT_SECURE_NO_WARNINGS
-//#define USE_SIMD
+#define USE_SIMD
 //#include <vld.h>
 #include <chrono>
 
@@ -13,7 +13,22 @@
 
 int main(void)
 {
-	
+	{
+		clau_parser::Maker maker;
+
+		clau_parser::UserType* result = maker.NewItem("x", "1")
+			.NewUserType("test")
+			.NewItem("a", "0")
+			.NewItem("b", "1")
+			.EndUserType()
+			.NewItem("str", "\"wow\"").Get();
+
+		std::cout << result->ToString() << "\n";
+
+		delete result;
+	}
+
+
 	/*
 	{
 		wiz::UserType ut("Name");
@@ -27,7 +42,7 @@ int main(void)
 		wiz::UserType ut("Name");
 		wiz::UserType global("Name");
 
-		global.AddUserTypeItem(ut); // Â³Â»ÂºÃŽÂ¿Â¡Â¼Â­ ÂµÂ¿Ã€Ã»Ã‡Ã’Â´Ã§
+		global.AddUserTypeItem(ut); // ³»ºÎ¿¡¼­ µ¿ÀûÇÒ´ç
 	}
 
 
@@ -53,7 +68,7 @@ int main(void)
 	
 	std::string fileName = "input.eu4"; 
 	
-	//std::cin >> fileName;
+	std::cin >> fileName;
 	/*
 	for (int i = 0; i <= 32; ++i) {
 		clau_parser::UserType global;
@@ -72,13 +87,13 @@ int main(void)
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
 	*/
-	 for (int i=0; i < 3; ++i) {
+	for (int i = 0; i < 5; ++i) {
 		clau_parser::UserType global;
 
 
 		auto start = std::chrono::steady_clock::now();
 
-		clau_parser::LoadData::LoadDataFromFile("input2.eu4", global, 0, 0);
+		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0, true);
 		auto last = std::chrono::steady_clock::now();
 		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(last - start);
 
@@ -87,23 +102,7 @@ int main(void)
 		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
 	}
 
-	
-	for (int i = 0; i < 3; ++i) {
-		clau_parser::UserType global;
-
-
-		auto start = std::chrono::steady_clock::now();
-
-		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0);
-		auto last = std::chrono::steady_clock::now();
-		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(last - start);
-
-		std::cout << dur.count() << "ms" << "\n";
-
-		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
-	}
-
-	for (int i = 0; i <= 32; ++i) {
+	for (int i = 0; i < 0; ++i) {
 		clau_parser::UserType global;
 
 
