@@ -3152,7 +3152,42 @@ namespace clau_parser {
 			return true;
 		}
 	};
+	
+	class Maker {
+	private:
+		Maker(const Maker&) = delete;
+		Maker& operator=(const Maker&) = delete;
+	private:
+		UserType* ut = nullptr;
+		std::vector<UserType*> _stack;
+	public:
+		Maker() : ut(new UserType()) { _stack.push_back(ut); }
+		virtual ~Maker() {
+			if (ut) {
+				delete ut;
+			}
+		}
 
+	public:
+		Maker& NewItem(const std::string& name, const std::string& value) {
+			_stack.back()->AddItem(name, value);
+			return *this;
+		}
+		Maker& NewUserType(const std::string& name) {
+			_stack.back()->AddUserTypeItem(UserType(name));
+			_stack.push_back(_stack.back()->GetUserTypeList(_stack.back()->GetUserTypeListSize() - 1));
+			return *this;
+		}
+		Maker& EndUserType() {
+			_stack.pop_back();
+			return *this;
+		}
+		UserType* Get() {
+			UserType* result = ut;
+			this->ut = nullptr;
+			return result;
+		}
+	};
 }
 
 #endif
