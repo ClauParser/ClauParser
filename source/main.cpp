@@ -1,7 +1,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #define USE_SIMD
-//#include <vld.h>
+
 #include <chrono>
 
 #include <iostream>
@@ -14,14 +14,20 @@
 int main(void)
 {
 	{
-		clau_parser::Maker maker;
+		clau_parser::Maker maker("AAA");
 
-		clau_parser::UserType* result = maker.NewItem("x", "1")
-			.NewUserType("test")
+		maker.NewItem("x", "1")
+			.NewGroup("test")
 			.NewItem("a", "0")
 			.NewItem("b", "1")
-			.EndUserType()
-			.NewItem("str", "\"wow\"").Get();
+			.EndGroup()
+			.NewItem("str", "\"wow\"");
+
+		clau_parser::Maker maker2;
+		clau_parser::UserType* result = maker2.NewItem("z", "-1")
+			.NewGroup(maker)
+			.NewItem("abc", "def")
+			.Get();
 
 		std::cout << result->ToString() << "\n";
 
