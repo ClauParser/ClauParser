@@ -597,7 +597,7 @@ namespace clau_parser {
 							token_arr_count++;
 						}
 						break;
-					case '#':
+					case  LoadDataOption::LineComment:
 						token_last = i - 1;
 						if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
