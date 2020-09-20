@@ -3161,7 +3161,7 @@ namespace clau_parser {
 		UserType* ut = nullptr;
 		std::vector<UserType*> _stack;
 	public:
-		Maker() : ut(new UserType()) { _stack.push_back(ut); }
+		Maker(const std::string name = "") : ut(new UserType(name)) { _stack.push_back(ut); }
 		virtual ~Maker() {
 			if (ut) {
 				delete ut;
@@ -3173,12 +3173,21 @@ namespace clau_parser {
 			_stack.back()->AddItem(name, value);
 			return *this;
 		}
-		Maker& NewUserType(const std::string& name) {
+		Maker& NewGroup(const std::string& name) {
 			_stack.back()->AddUserTypeItem(UserType(name));
 			_stack.push_back(_stack.back()->GetUserTypeList(_stack.back()->GetUserTypeListSize() - 1));
 			return *this;
 		}
-		Maker& EndUserType() {
+		Maker& NewGroup(Maker& other) {
+			if (this->ut == other.ut) {
+				throw "New Group this == other";
+			}
+			
+			_stack.back()->LinkUserType(other.ut);
+			other.ut = nullptr;
+			return *this;
+		}
+		Maker& EndGroup() {
 			_stack.pop_back();
 			return *this;
 		}
