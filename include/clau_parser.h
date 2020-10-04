@@ -174,7 +174,8 @@ namespace clau_parser {
 		}
 
 		static void PrintToken(const char* buffer, int64_t token) {
-			std::cout << std::string(buffer + Utility::GetIdx(token), Utility::GetLength(token));
+			std::cout << Utility::GetIdx(token) << " " << Utility::GetLength(token) << "\n";
+			std::cout << std::string_view(buffer + Utility::GetIdx(token), Utility::GetLength(token));
 		}
 	};
 
@@ -182,7 +183,7 @@ namespace clau_parser {
 	{
 	private:
 
-		// use simd - experimental.. 
+		// use simd - experimental..  - has bug : 2020.10.04
 		static void _ScanningWithSimd(char* text, int64_t num, const int64_t length,
 			int64_t*& token_arr, size_t& _token_arr_size) {
 
@@ -349,6 +350,9 @@ namespace clau_parser {
 									{//
 										if (((-x1.m256i_i8[start]) & 0b1000) != 0) {
 											token_arr[num + token_arr_count] = 1;
+										}
+										else {
+											token_arr[num + token_arr_count] = 0;
 										}
 										const char ch = text[i];
 										token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
@@ -749,8 +753,12 @@ namespace clau_parser {
 
 			for (size_t t = 0; t < thr_num; ++t) {
 				for (size_t j = 0; j < token_arr_size[t]; ++j) {
+
 					const int64_t i = start[t] + j;
 
+					//std::cout << tokens[i] << "\n";
+					//Utility::PrintToken(text, tokens[i]);
+					//
 					const int64_t len = Utility::GetLength(tokens[i]);
 					const char ch = text[Utility::GetIdx(tokens[i])];
 					const int64_t idx = Utility::GetIdx(tokens[i]);
@@ -778,6 +786,10 @@ namespace clau_parser {
 								len = Utility::GetIdx(tokens[i]) - idx + 1;
 
 								tokens[real_token_arr_count] = Utility::Get(idx, len, text[idx]);
+
+							//	Utility::PrintToken(text, tokens[real_token_arr_count]);
+
+
 								real_token_arr_count++;
 							}
 						}
@@ -793,16 +805,19 @@ namespace clau_parser {
 					}
 					else if (0 == state) { // 
 						tokens[real_token_arr_count] = tokens[i];
+						
+					//	Utility::PrintToken(text, tokens[real_token_arr_count]);
+
 						real_token_arr_count++;
 					}
 				}
 			}
-			auto c = std::chrono::steady_clock::now();
-			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
-			auto dur2 = std::chrono::duration_cast<std::chrono::milliseconds>(c - b);
+			//auto c = std::chrono::steady_clock::now();
+			//auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
+			//auto dur2 = std::chrono::duration_cast<std::chrono::milliseconds>(c - b);
 
-			std::cout << dur.count() << "ms\n";
-			std::cout << dur2.count() << "ms\n";
+			//std::cout << dur.count() << "ms\n";
+			//std::cout << dur2.count() << "ms\n";
 
 			{
 				if (0 != state) {
@@ -2872,7 +2887,7 @@ namespace clau_parser {
 
 				auto b = std::chrono::steady_clock::now();
 				auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
-				std::cout << "scan " << dur.count() << "ms\n";
+			//	std::cout << "scan " << dur.count() << "ms\n";
 
 				//	{
 				//		for (int64_t i = 0; i < token_arr_len; ++i) {
@@ -2967,7 +2982,7 @@ namespace clau_parser {
 
 					auto b = std::chrono::steady_clock::now();
 					auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
-					std::cout << "parse1 " << dur.count() << "ms\n";
+					//std::cout << "parse1 " << dur.count() << "ms\n";
 
 					for (size_t i = 0; i < err.size(); ++i) {
 						switch (err[i]) {
@@ -3030,7 +3045,7 @@ namespace clau_parser {
 
 					auto c = std::chrono::steady_clock::now();
 					auto dur2 = std::chrono::duration_cast<std::chrono::nanoseconds>(c - b);
-					std::cout << "parse2 " << dur2.count() << "ns\n";
+					//std::cout << "parse2 " << dur2.count() << "ns\n";
 				}
 			}
 
