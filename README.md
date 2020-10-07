@@ -9,8 +9,15 @@ Load Data Parallel From Paradox Game Data File ( especially "save game" )and Cre
 
 Loading Data Parallel From Paradox Game Data File(50MB) take 360 ~ 600 ms in my computer.(Intel i7 8th gen cpu - 4 core 8 thread,, ssd)
 
+#
+Needs C++11.
+
+Supports UTF-8(BOM).
+
+Supports Linux(g++), Windows(Visual C++).
 
 
+#
 
 Following is supported Data File Example.
 #
