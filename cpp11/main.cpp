@@ -1,5 +1,5 @@
 
-#define _CRT_SECURE_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
 //#define USE_SIMD - not yet linux
 
 #include <chrono>
