@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "clau_parser_cpp11.h" // need C++17
+#include "clau_parser_cpp11.h" // need C++11
 
 #include <ctime>
 
