@@ -1,6 +1,6 @@
 
 #define _CRT_SECURE_NO_WARNINGS
-#define USE_SIMD
+//#define USE_SIMD - not yet linux
 
 #include <chrono>
 
@@ -51,7 +51,7 @@ int main(void)
 		wiz::UserType ut("Name");
 		wiz::UserType global("Name");
 
-		global.AddUserTypeItem(ut); // ³»ºÎ¿¡¼­ µ¿ÀûÇÒ´ç
+		global.AddUserTypeItem(ut); // Â³Â»ÂºÃŽÂ¿Â¡Â¼Â­ ÂµÂ¿Ã€Ã»Ã‡Ã’Â´Ã§
 	}
 
 
