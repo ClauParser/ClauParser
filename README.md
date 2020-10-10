@@ -12,7 +12,7 @@ Loading Data Parallel From Paradox Game Data File(50MB) take 360 ~ 600 ms in my 
 #
 Needs C++17. ( but files in cpp11 folder need C++11 )
 
-Supports UTF-8(BOM).
+Supports UTF-8(just BOM check).
 
 Supports Linux(g++), Windows(Visual C++).
 
