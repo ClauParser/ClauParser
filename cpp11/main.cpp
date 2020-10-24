@@ -1,13 +1,9 @@
 
-//#define _CRT_SECURE_NO_WARNINGS
-//#define USE_SIMD - not yet linux
-
 #include <chrono>
 
 #include <iostream>
 
 #include "clau_parser_cpp11.h" // need C++11
-
 
 
 int main(void)
@@ -39,29 +35,29 @@ int main(void)
 
 	/*
 	{
-		wiz::UserType ut("Name");
-		wiz::ItemType<std::string> it("Name", "Data");
+		clau_parser::UserType ut("Name");
+		clau_parser::ItemType<std::string> it("Name", "Data");
 
 		ut.AddItemType(it);
 	}
 
 
 	{
-		wiz::UserType ut("Name");
-		wiz::UserType global("Name");
+		clau_parser::UserType ut("Name");
+		clau_parser::UserType global("Name");
 
-		global.AddUserTypeItem(ut); // Â³Â»ÂºÃŽÂ¿Â¡Â¼Â­ ÂµÂ¿Ã€Ã»Ã‡Ã’Â´Ã§
+		global.AddUserTypeItem(ut); // ³»ºÎ¿¡¼­ µ¿ÀûÇÒ´ç
 	}
 
 
 
 
 	{
-		wiz::UserType global;
+		clau_parser::UserType global;
 		global.AddItem("date", "1947.5.8");
 		global.AddItem("save_game", "\"Russia.eu4\"");
 		{
-			wiz::UserType temp("savegame_versions");
+			clau_parser::UserType temp("savegame_versions");
 			temp.AddItem("", "\"1.18.1.0\"");
 			temp.AddItem("", "\"1.18.2.0\"");
 			temp.AddItem("", "\"1.18.3.0\"");
@@ -76,7 +72,7 @@ int main(void)
 
 	std::string fileName = "input.eu4";
 
-	std::cin >> fileName;
+	//std::cin >> fileName;
 	/*
 	for (int i = 0; i <= 32; ++i) {
 		clau_parser::UserType global;
@@ -92,36 +88,36 @@ int main(void)
 
 		std::cout << dur.count() << "ms" << "\n";
 
-		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
+		//clau_parser::LoadData::Saveclau_parserDB2(global, "output.eu4");
 	}
 	*/
 	for (int i = 0; i < 5; ++i) {
-		clau_parser::UserType global;
+		clau_parser11::UserType global;
 
 
 		auto start = std::chrono::steady_clock::now();
-		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, 0, false); // true - error!  fixed..
+		clau_parser11::LoadData::LoadDataFromFile(fileName, global, 0, 0, false); // true - error!  fixed..
 		auto last = std::chrono::steady_clock::now();
 		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(last - start);
 
 		std::cout << dur.count() << "ms" << "\n";
 
-		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
+		//clau_parser::LoadData::Saveclau_parserDB2(global, "output.eu4");
 	}
 
 	for (int i = 0; i < 0; ++i) {
-		clau_parser::UserType global;
+		clau_parser11::UserType global;
 
 
 		auto start = std::chrono::steady_clock::now();
 
-		clau_parser::LoadData::LoadDataFromFile(fileName, global, 0, i);
+		clau_parser11::LoadData::LoadDataFromFile(fileName, global, 0, i);
 		auto last = std::chrono::steady_clock::now();
 		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(last - start);
 
 		std::cout << dur.count() << "ms" << "\n";
 
-		//clau_parser::LoadData::SaveWizDB2(global, "output.eu4");
+		//clau_parser::LoadData::Saveclau_parserDB2(global, "output.eu4");
 	}
 
 	return 0;

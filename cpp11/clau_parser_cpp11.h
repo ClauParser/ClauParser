@@ -1,24 +1,25 @@
 
-#ifndef CLAU_PARSER_CPP_11_H
-#define CLAU_PARSER_CPP_11_H
+#ifndef clau_parser11_CPP_11_H
+#define clau_parser11_CPP_11_H
 
 #include <iostream>
 #include <vector>
 #include <set>
+#include <queue>
 #include <stack>
 #include <string>
 #include <cstring>
 #include <fstream>
 
 #include <algorithm>
-
+#include <utility>
 #include <thread>
 
 #ifdef USE_SIMD
 #include <intrin.h> // windows, todo : linux - x86intrin
 #endif
 
-namespace clau_parser {
+namespace clau_parser11 {
 
 	namespace LoadDataOption
 	{
@@ -991,7 +992,7 @@ namespace clau_parser {
 
 				Utility::BomType x = Utility::ReadBom(inFile);
 
-				//	clau_parser::Out << "length " << length << "\n";
+				//	clau_parser11::Out << "length " << length << "\n";
 				if (x == Utility::BomType::UTF_8) {
 					length = length - 3;
 				}
@@ -1219,26 +1220,35 @@ namespace clau_parser {
 
 	};
 
+	template <class T>
+	class WrapType {
+	public:
+		T ptr;
+		size_t idx;
+	public:
+		WrapType(T ptr, size_t idx) : ptr(ptr), idx(idx) { }
+	};
+
 	class UserType : public Type {
 	private:
 		class UserTypeCompare
 		{
 		public:
-			bool operator() (const UserType* x, const UserType* y) const {
-				return x->GetName() < y->GetName();
+			bool operator() (const WrapType<UserType*> x, const WrapType<UserType*> y) const {
+				return x.ptr->GetName() < y.ptr->GetName();
 			}
 		};
 		class ItemTypeStringPtrCompare {
 		public:
-			bool operator() (const ItemType<std::string>* x, const ItemType<std::string>* y) const {
-				return x->GetName() < y->GetName();
+			bool operator() (const WrapType<ItemType<std::string>*> x, const WrapType<ItemType<std::string>*> y) const {
+				return x.ptr->GetName() < y.ptr->GetName();
 			}
 		};
 
 		int Dif(const std::string& x, const std::string& y) const {
 			return x.compare(y); // strcmp
 		}
-		size_t binary_find_ut(const std::vector<UserType*>& arr, const UserType& x, bool& err) const
+		size_t binary_find_ut(const std::vector<WrapType<UserType*>>& arr, const UserType& x, bool& err) const
 		{
 			err = false;
 
@@ -1248,7 +1258,7 @@ namespace clau_parser {
 			size_t middle = (left + right) / 2;
 
 			while (left <= right) {
-				const int dif = Dif(arr[middle]->GetName(), x.GetName());
+				const int dif = Dif(arr[middle].ptr->GetName(), x.GetName());
 
 				if (dif == 0) { //arr[middle]->GetName() == x.GetName()) {
 					return middle;
@@ -1269,7 +1279,7 @@ namespace clau_parser {
 			return -1;
 		}
 
-		size_t binary_find_it(const std::vector<ItemType<std::string>*>& arr, const ItemType<std::string>& x, bool& err) const {
+		size_t binary_find_it(const std::vector<WrapType<ItemType<std::string>*>>&arr, const ItemType<std::string>& x, bool& err) const {
 			err = false;
 			if (arr.empty()) { err = true;  return -1; }
 
@@ -1277,7 +1287,7 @@ namespace clau_parser {
 			size_t middle = (left + right) / 2;
 
 			while (left <= right) {
-				const int dif = Dif(arr[middle]->GetName(), x.GetName());
+				const int dif = Dif(arr[middle].ptr->GetName(), x.GetName());
 
 				if (dif == 0) { //arr[middle]->GetName() == x.GetName()) {
 					return middle;
@@ -1367,8 +1377,8 @@ namespace clau_parser {
 		std::vector<int> ilist;
 		std::vector< ItemType<std::string> > itemList;
 		std::vector< UserType* > userTypeList;
-		mutable std::vector< ItemType<std::string>* > sortedItemList;
-		mutable std::vector< UserType* > sortedUserTypeList;
+		mutable std::vector< WrapType<ItemType<std::string>*> > sortedItemList;
+		mutable std::vector< WrapType<UserType*> > sortedUserTypeList;
 		mutable bool useSortedItemList = false;
 		mutable bool useSortedUserTypeList = false;
 	public:
@@ -1951,14 +1961,14 @@ namespace clau_parser {
 
 			useSortedItemList = false;
 		}
-		void AddItemType(clau_parser::ItemType<std::string>&& item) {
+		void AddItemType(clau_parser11::ItemType<std::string>&& item) {
 			itemList.push_back(std::move(item));
 			ilist.push_back(1);
 
 			useSortedItemList = false;
 		}
 
-		void AddItemType(const clau_parser::ItemType<std::string>& item) {
+		void AddItemType(const clau_parser11::ItemType<std::string>& item) {
 			itemList.push_back(item);
 			ilist.push_back(1);
 
@@ -2035,6 +2045,69 @@ namespace clau_parser {
 			useSortedUserTypeList = false;
 		}
 
+
+		std::vector<int> GetUserTypeIdx(const std::string& name) const {
+			std::vector<int> temp;
+
+			if (name == "*") {
+				std::cout << userTypeList.size() << "|\n";
+				for (size_t i = 0; i < userTypeList.size(); ++i) {
+					temp.push_back(i);
+				}
+				return temp;
+			}
+
+			if (false == useSortedUserTypeList) {
+				// make sortedUserTypeList.
+				sortedUserTypeList.clear();
+				for (size_t i = 0; i < userTypeList.size(); ++i) {
+					sortedUserTypeList.emplace_back(userTypeList[i], i);
+
+				}
+				//	sortedUserTypeList = userTypeList;
+
+				std::stable_sort(sortedUserTypeList.begin(), sortedUserTypeList.end(), UserTypeCompare());
+
+				useSortedUserTypeList = true;
+			}
+			// binary search
+			{
+				UserType x = UserType(name);
+				bool err = false;
+				size_t idx = binary_find_ut(sortedUserTypeList, x, err);
+				if (!err) {
+					size_t start = idx;
+					size_t  last = idx;
+
+					for (size_t i = idx; i > 0; --i) {
+						if (name == sortedUserTypeList[i - 1].ptr->GetName()) {
+							start--;
+						}
+						else {
+							break;
+						}
+					}
+					for (size_t i = idx + 1; i < sortedUserTypeList.size(); ++i) {
+						if (name == sortedUserTypeList[i].ptr->GetName()) {
+							last++;
+						}
+						else {
+							break;
+						}
+					}
+
+					for (size_t i = start; i < last + 1; ++i) {
+						temp.push_back(sortedUserTypeList[i].idx);
+					}
+				}
+				else {
+					//std::cout << "no found" << "\n";
+				}
+			}
+
+			return temp;
+		}
+
 		std::vector<ItemType<std::string>> GetItem(const std::string& name) const {
 			std::vector<ItemType<std::string>> temp;
 			/*if (String::startsWith(name, "$.") && name.size() >= 5) {
@@ -2052,7 +2125,7 @@ namespace clau_parser {
 				if (false == useSortedItemList) {
 					sortedItemList.clear();
 					for (size_t i = 0; i < itemList.size(); ++i) {
-						sortedItemList.push_back((ItemType<std::string>*) & itemList[i]);
+						sortedItemList.push_back(WrapType<ItemType<std::string>*>((ItemType<std::string>*)&itemList[i], i));
 					}
 
 					std::sort(sortedItemList.begin(), sortedItemList.end(), ItemTypeStringPtrCompare());
@@ -2069,7 +2142,7 @@ namespace clau_parser {
 						size_t  last = idx;
 
 						for (size_t i = idx; i > 0; --i) {
-							if (name == sortedItemList[i - 1]->GetName()) {
+							if (name == sortedItemList[i - 1].ptr->GetName()) {
 								start--;
 							}
 							else {
@@ -2077,7 +2150,7 @@ namespace clau_parser {
 							}
 						}
 						for (size_t i = idx + 1; i < sortedItemList.size(); ++i) {
-							if (name == sortedItemList[i]->GetName()) {
+							if (name == sortedItemList[i].ptr->GetName()) {
 								last++;
 							}
 							else {
@@ -2086,7 +2159,7 @@ namespace clau_parser {
 						}
 
 						for (size_t i = start; i < last + 1; ++i) {
-							temp.push_back(*sortedItemList[i]);
+							temp.push_back(*sortedItemList[i].ptr);
 						}
 					}
 					else {
@@ -2124,7 +2197,9 @@ namespace clau_parser {
 
 			if (false == useSortedUserTypeList) {
 				// make sortedUserTypeList.
-				sortedUserTypeList = userTypeList;
+				for (size_t i = 0; i < userTypeList.size(); ++i) {
+					sortedUserTypeList.emplace_back(userTypeList[i], i);
+				}
 
 				std::sort(sortedUserTypeList.begin(), sortedUserTypeList.end(), UserTypeCompare());
 
@@ -2140,7 +2215,7 @@ namespace clau_parser {
 					size_t  last = idx;
 
 					for (size_t i = idx; i > 0; --i) {
-						if (name == sortedUserTypeList[i - 1]->GetName()) {
+						if (name == sortedUserTypeList[i - 1].ptr->GetName()) {
 							start--;
 						}
 						else {
@@ -2148,7 +2223,7 @@ namespace clau_parser {
 						}
 					}
 					for (size_t i = idx + 1; i < sortedUserTypeList.size(); ++i) {
-						if (name == sortedUserTypeList[i]->GetName()) {
+						if (name == sortedUserTypeList[i].ptr->GetName()) {
 							last++;
 						}
 						else {
@@ -2157,7 +2232,7 @@ namespace clau_parser {
 					}
 
 					for (size_t i = start; i < last + 1; ++i) {
-						temp.push_back(sortedUserTypeList[i]);
+						temp.push_back(sortedUserTypeList[i].ptr);
 					}
 				}
 				else {
@@ -2174,7 +2249,9 @@ namespace clau_parser {
 
 			if (false == useSortedUserTypeList) {
 				// make sortedUserTypeList.
-				sortedUserTypeList = userTypeList;
+				for (size_t i = 0; i < userTypeList.size(); ++i) {
+					sortedUserTypeList.emplace_back(userTypeList[i], i);
+				}
 
 				std::sort(sortedUserTypeList.begin(), sortedUserTypeList.end(), UserTypeCompare());
 
@@ -2190,7 +2267,7 @@ namespace clau_parser {
 					size_t last = idx;
 
 					for (size_t i = idx; i > 0; --i) {
-						if (name == sortedUserTypeList[i - 1]->GetName()) {
+						if (name == sortedUserTypeList[i - 1].ptr->GetName()) {
 							start--;
 						}
 						else {
@@ -2198,7 +2275,7 @@ namespace clau_parser {
 						}
 					}
 					for (size_t i = idx + 1; i < sortedUserTypeList.size(); ++i) {
-						if (name == sortedUserTypeList[i]->GetName()) {
+						if (name == sortedUserTypeList[i].ptr->GetName()) {
 							last++;
 						}
 						else {
@@ -2207,7 +2284,7 @@ namespace clau_parser {
 					}
 
 					for (size_t i = start; i < last + 1; ++i) {
-						temp.push_back(new UserType(*sortedUserTypeList[i]));
+						temp.push_back(new UserType(*sortedUserTypeList[i].ptr));
 					}
 				}
 				else {
@@ -2217,6 +2294,72 @@ namespace clau_parser {
 
 			return temp;
 		}
+
+		std::vector<int> GetItemIdx(const std::string & name) const {
+			std::vector<int> temp;
+			/*if (String::startsWith(name, "$.") && name.size() >= 5) {
+				// later, change to binary search?
+				std::string str = name.substr(3, name.size() - 4);
+				std::regex rgx(str);
+				for (int i = 0; i < itemList.size(); ++i) {
+					if (regex_match(itemList[i].GetName(), rgx)) {
+						temp.push_back(itemList[i]);
+					}
+				}
+			}
+			else*/
+			{
+				if (false == useSortedItemList) {
+					sortedItemList.clear();
+					for (size_t i = 0; i < itemList.size(); ++i) {
+						sortedItemList.push_back(WrapType<ItemType<std::string>*>((ItemType<std::string>*)&itemList[i], i));
+					}
+
+					std::stable_sort(sortedItemList.begin(), sortedItemList.end(), ItemTypeStringPtrCompare());
+
+					useSortedItemList = true;
+				}
+				// binary search
+				{
+					bool err = false;
+					ItemType<std::string> x = ItemType<std::string>(name, "");
+					size_t  idx = binary_find_it(sortedItemList, x, err);
+
+					if (!err) {
+						size_t  start = idx;
+						size_t  last = idx;
+
+						for (size_t i = idx; i > 0; --i) {
+							if (name == sortedItemList[i - 1].ptr->GetName()) {
+								start--;
+							}
+							else {
+								break;
+							}
+						}
+						for (size_t i = idx + 1; i < sortedItemList.size(); ++i) {
+							if (name == sortedItemList[i].ptr->GetName()) {
+								last++;
+							}
+							else {
+								break;
+							}
+						}
+
+						for (size_t i = start; i < last + 1; ++i) {
+							temp.push_back(sortedItemList[i].idx);
+						}
+					}
+					else {
+						//std::cout << "no found" << "\n";
+					}
+				}
+			}
+			return temp;
+		}
+	
+				
+
 	public:
 		bool GetUserTypeItemRef(const size_t  idx, UserType*& ref)
 		{
@@ -3113,7 +3256,7 @@ namespace clau_parser {
 			return true;
 		}
 
-		static bool LoadWizDB(UserType& global, const std::string& fileName, const int thr_num) {
+		static bool Loadclau_parser11DB(UserType& global, const std::string& fileName, const int thr_num) {
 			UserType globalTemp = UserType("global");
 
 			// Scan + Parse 
@@ -3124,7 +3267,7 @@ namespace clau_parser {
 			return true;
 		}
 
-		static bool SaveWizDB(const UserType& global, const std::string& fileName, const bool append = false) {
+		static bool Saveclau_parser11DB(const UserType& global, const std::string& fileName, const bool append = false) {
 			std::ofstream outFile;
 			if (fileName.empty()) { return false; }
 			if (false == append) {
@@ -3146,7 +3289,7 @@ namespace clau_parser {
 			return true;
 		}
 
-		static bool SaveWizDB2(const UserType& global, const std::string& fileName, const bool append = false) {
+		static bool Saveclau_parser11DB2(const UserType& global, const std::string& fileName, const bool append = false) {
 			std::ofstream outFile;
 			if (fileName.empty()) { return false; }
 			if (false == append) {
@@ -3169,6 +3312,221 @@ namespace clau_parser {
 		}
 	};
 
+
+
+	enum class ValueType {
+		end_of_container,
+		end_of_document,
+		container, // array or object or mixed
+		key,
+		value
+	};
+
+	class ClauParserTraverser {
+
+		class Iterator {
+		private:
+			ValueType state;
+			std::string value;
+			clau_parser11::UserType* ut;
+			std::stack<clau_parser11::UserType*> _stack; // 
+			std::stack<int> _ut_stack; // usertype
+			std::stack<int> _it_stack; // itemtype
+			std::stack<int> _idx_stack; // ilist
+			int chk_name; // key or data?
+		public:
+			Iterator(clau_parser11::UserType* ut) : ut(ut) {
+				_stack.push(ut);
+				_ut_stack.push(0);
+				_it_stack.push(0);
+				_idx_stack.push(0);
+				chk_name = 0;
+
+				next();
+			}
+
+			void up() {
+				_stack.pop();
+				_ut_stack.pop();
+				_it_stack.pop();
+				_idx_stack.pop();
+			}
+
+			bool down() {
+				_stack.push(_stack.top()->GetUserTypeList(_ut_stack.top() - 1));
+				_ut_stack.push(0);
+				_it_stack.push(0);
+				_idx_stack.push(0);
+
+				return true;
+			}
+
+			bool next() {
+				if (_idx_stack.top() >= _stack.top()->GetIListSize()) {
+					if (_stack.size() > 1) {
+						state = ValueType::end_of_container;
+
+						value = "}";
+					}
+					else {
+						state = ValueType::end_of_document;
+					}
+					return false;
+				}
+
+				if (_stack.top()->IsUserTypeList(_idx_stack.top())) {
+					bool empty_key = false; // key : 
+					static bool first = true;
+
+					if (_stack.top()->GetUserTypeList(_ut_stack.top())->GetName().empty()) {
+						empty_key = true;
+					}
+
+					if (empty_key || !first) {
+						state = ValueType::container;
+						value = "{";
+
+						first = true;
+
+						_idx_stack.top()++;
+						_ut_stack.top()++;
+					}
+					else {
+						first = false;
+						state = ValueType::key;
+						value = _stack.top()->GetUserTypeList(_ut_stack.top())->GetName();
+					}
+				}
+				else {
+					if (chk_name == 0) { // name or value
+						auto item = (_stack.top()->GetItemList(_it_stack.top()));
+
+						if (item.GetName().empty()) { // array data
+							chk_name = 0;
+							state = ValueType::value;
+							value = item.Get();
+
+							_idx_stack.top()++;
+							_it_stack.top()++;
+						}
+						else {
+							chk_name = 1;
+							state = ValueType::key;
+							value = item.GetName();
+						}
+					}
+					else if (chk_name == 1) { // value
+						chk_name = 0;
+
+						auto item = (_stack.top()->GetItemList(_it_stack.top()));
+
+						state = ValueType::value;
+						value = item.Get();
+
+						_idx_stack.top()++;
+						_it_stack.top()++;
+					}
+				}
+
+				return true;
+			}
+
+			ValueType get_type() {
+				return state;
+			}
+
+			std::string get_data() {
+				return value;
+			}
+		};
+	public:
+
+		ClauParserTraverser(clau_parser11::UserType* parsed_json) :
+			parsed_json(parsed_json)
+			, iterator(parsed_json)
+		{
+			//
+		}
+
+		ValueType next() {
+			{
+
+				ValueType before_type = iterator.get_type();
+
+				if (before_type == ValueType::end_of_document) {
+					return ValueType::end_of_document;
+				}
+
+
+				if (before_type == ValueType::end_of_container) {
+					iterator.up();
+					iterator.next();
+					return iterator.get_type();
+				}
+
+
+				if (before_type == ValueType::container) {
+					bool end_of_container = !iterator.down();
+
+					if (end_of_container) {
+						return ValueType::end_of_container;
+					}
+					else {
+						end_of_container = !iterator.next();
+					}
+
+					return iterator.get_type();
+				}
+
+				iterator.next();
+				return iterator.get_type();
+			}
+
+		}
+
+		ValueType get_type() { return iterator.get_type(); }
+
+		std::string get_string() {
+			return iterator.get_data();
+		}
+		int64_t get_integer() {
+			return std::stoll(get_string());
+		}
+		double get_floating() {
+			return std::stod(get_string());
+		}
+
+	private:
+		clau_parser11::UserType* parsed_json;
+		Iterator iterator;
+	};
+
+	class TraverserUtility {
+	public:
+		static std::ostream& Save(std::ostream& stream, ClauParserTraverser& traverser) {
+			while (traverser.get_type() != ValueType::end_of_document) {
+
+				stream << traverser.get_string();
+
+				if (traverser.get_type() == ValueType::key) {
+					stream << " = ";
+				}
+				else {
+					stream << " ";
+				}
+
+				if (traverser.get_type() == ValueType::end_of_container) {
+					stream << "\n";
+				}
+
+				traverser.next();
+			}
+
+			return stream;
+		}
+	};
+
+	
 	class Maker {
 	private:
 		Maker(const Maker&) = delete;
