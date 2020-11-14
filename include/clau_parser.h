@@ -1762,7 +1762,7 @@ namespace clau_parser {
 			size_t k = _GetIndex(ilist, 2, err, 0);
 			std::vector<UserType*> tempDic;
 			for (size_t i = 0; i < userTypeList.size(); ++i) {
-				if (varName != userTypeList[i]->GetName()) {
+				if (userTypeList[i] && varName != userTypeList[i]->GetName()) {
 					tempDic.push_back(userTypeList[i]);
 					k = _GetIndex(ilist, 2, err, k + 1);
 				}
