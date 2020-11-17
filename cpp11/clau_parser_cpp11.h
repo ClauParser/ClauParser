@@ -1,4 +1,7 @@
 
+
+
+
 #ifndef clau_parser11_CPP_11_H
 #define clau_parser11_CPP_11_H
 
@@ -1279,7 +1282,7 @@ namespace clau_parser11 {
 			return -1;
 		}
 
-		size_t binary_find_it(const std::vector<WrapType<ItemType<std::string>*>>&arr, const ItemType<std::string>& x, bool& err) const {
+		size_t binary_find_it(const std::vector<WrapType<ItemType<std::string>*>>& arr, const ItemType<std::string>& x, bool& err) const {
 			err = false;
 			if (arr.empty()) { err = true;  return -1; }
 
@@ -1770,7 +1773,7 @@ namespace clau_parser11 {
 			size_t k = _GetIndex(ilist, 2, err, 0);
 			std::vector<UserType*> tempDic;
 			for (size_t i = 0; i < userTypeList.size(); ++i) {
-				if (varName != userTypeList[i]->GetName()) {
+				if (userTypeList[i] && varName != userTypeList[i]->GetName()) {
 					tempDic.push_back(userTypeList[i]);
 					k = _GetIndex(ilist, 2, err, k + 1);
 				}
@@ -2125,7 +2128,7 @@ namespace clau_parser11 {
 				if (false == useSortedItemList) {
 					sortedItemList.clear();
 					for (size_t i = 0; i < itemList.size(); ++i) {
-						sortedItemList.push_back(WrapType<ItemType<std::string>*>((ItemType<std::string>*)&itemList[i], i));
+						sortedItemList.push_back(WrapType<ItemType<std::string>*>((ItemType<std::string>*) & itemList[i], i));
 					}
 
 					std::sort(sortedItemList.begin(), sortedItemList.end(), ItemTypeStringPtrCompare());
@@ -2295,7 +2298,7 @@ namespace clau_parser11 {
 			return temp;
 		}
 
-		std::vector<int> GetItemIdx(const std::string & name) const {
+		std::vector<int> GetItemIdx(const std::string& name) const {
 			std::vector<int> temp;
 			/*if (String::startsWith(name, "$.") && name.size() >= 5) {
 				// later, change to binary search?
@@ -2312,7 +2315,7 @@ namespace clau_parser11 {
 				if (false == useSortedItemList) {
 					sortedItemList.clear();
 					for (size_t i = 0; i < itemList.size(); ++i) {
-						sortedItemList.push_back(WrapType<ItemType<std::string>*>((ItemType<std::string>*)&itemList[i], i));
+						sortedItemList.push_back(WrapType<ItemType<std::string>*>((ItemType<std::string>*) & itemList[i], i));
 					}
 
 					std::stable_sort(sortedItemList.begin(), sortedItemList.end(), ItemTypeStringPtrCompare());
@@ -2357,8 +2360,8 @@ namespace clau_parser11 {
 			}
 			return temp;
 		}
-	
-				
+
+
 
 	public:
 		bool GetUserTypeItemRef(const size_t  idx, UserType*& ref)
@@ -3216,7 +3219,7 @@ namespace clau_parser11 {
 
 			bool success = true;
 			FILE* inFile;
-			
+
 #ifdef _WIN32 
 			fopen_s(&inFile, fileName.c_str(), "rb");
 #else
@@ -3526,7 +3529,7 @@ namespace clau_parser11 {
 		}
 	};
 
-	
+
 	class Maker {
 	private:
 		Maker(const Maker&) = delete;
@@ -3574,3 +3577,6 @@ namespace clau_parser11 {
 }
 
 #endif
+
+
+
