@@ -2,8 +2,8 @@
 
 
 
-#ifndef clau_parser_H
-#define clau_parser_H
+#ifndef CLAU_PARSER_H
+#define CLAU_PARSER_H
 
 #include <iostream>
 #include <vector>
