@@ -3339,43 +3339,48 @@ namespace clau_parser {
 
 		class Iterator {
 		private:
+			bool first = true;
+
 			ValueType state;
 			std::string value;
 			clau_parser::UserType* ut;
-			std::stack<clau_parser::UserType*> _stack; // 
-			std::stack<int> _ut_stack; // usertype
-			std::stack<int> _it_stack; // itemtype
-			std::stack<int> _idx_stack; // ilist
+			std::vector<clau_parser::UserType*> _stack; // 
+			std::vector<int> _ut_stack; // usertype
+			std::vector<int> _it_stack; // itemtype
+			std::vector<int> _idx_stack; // ilist
 			int chk_name; // key or data?
 		public:
+		//	Iterator(Iterator&&) = default;
+			Iterator(const Iterator&) = default;
+
 			Iterator(clau_parser::UserType* ut) : ut(ut) {
-				_stack.push(ut);
-				_ut_stack.push(0);
-				_it_stack.push(0);
-				_idx_stack.push(0);
+				_stack.push_back(ut);
+				_ut_stack.push_back(0);
+				_it_stack.push_back(0);
+				_idx_stack.push_back(0);
 				chk_name = 0;
 
 				next();
 			}
 
 			void up() {
-				_stack.pop();
-				_ut_stack.pop();
-				_it_stack.pop();
-				_idx_stack.pop();
+				_stack.pop_back();
+				_ut_stack.pop_back();
+				_it_stack.pop_back();
+				_idx_stack.pop_back();
 			}
 
 			bool down() {
-				_stack.push(_stack.top()->GetUserTypeList(_ut_stack.top() - 1));
-				_ut_stack.push(0);
-				_it_stack.push(0);
-				_idx_stack.push(0);
+				_stack.push_back(_stack.back()->GetUserTypeList(_ut_stack.back() - 1));
+				_ut_stack.push_back(0);
+				_it_stack.push_back(0);
+				_idx_stack.push_back(0);
 
 				return true;
 			}
 
 			bool next() {
-				if (_idx_stack.top() >= _stack.top()->GetIListSize()) {
+				if (_idx_stack.back() >= _stack.back()->GetIListSize()) {
 					if (_stack.size() > 1) {
 						state = ValueType::end_of_container;
 
@@ -3387,11 +3392,10 @@ namespace clau_parser {
 					return false;
 				}
 
-				if (_stack.top()->IsUserTypeList(_idx_stack.top())) {
+				if (_stack.back()->IsUserTypeList(_idx_stack.back())) {
 					bool empty_key = false; // key : 
-					static bool first = true;
-
-					if (_stack.top()->GetUserTypeList(_ut_stack.top())->GetName().empty()) {
+				
+					if (_stack.back()->GetUserTypeList(_ut_stack.back())->GetName().empty()) {
 						empty_key = true;
 					}
 
@@ -3401,26 +3405,26 @@ namespace clau_parser {
 
 						first = true;
 
-						_idx_stack.top()++;
-						_ut_stack.top()++;
+						_idx_stack.back()++;
+						_ut_stack.back()++;
 					}
 					else {
 						first = false;
 						state = ValueType::key;
-						value = _stack.top()->GetUserTypeList(_ut_stack.top())->GetName();
+						value = _stack.back()->GetUserTypeList(_ut_stack.back())->GetName();
 					}
 				}
 				else {
 					if (chk_name == 0) { // name or value
-						auto item = (_stack.top()->GetItemList(_it_stack.top()));
+						auto& item = (_stack.back()->GetItemList(_it_stack.back()));
 
 						if (item.GetName().empty()) { // array data
 							chk_name = 0;
 							state = ValueType::value;
 							value = item.Get();
 
-							_idx_stack.top()++;
-							_it_stack.top()++;
+							_idx_stack.back()++;
+							_it_stack.back()++;
 						}
 						else {
 							chk_name = 1;
@@ -3431,38 +3435,41 @@ namespace clau_parser {
 					else if (chk_name == 1) { // value
 						chk_name = 0;
 
-						auto item = (_stack.top()->GetItemList(_it_stack.top()));
+						auto& item = (_stack.back()->GetItemList(_it_stack.back()));
 
 						state = ValueType::value;
 						value = item.Get();
 
-						_idx_stack.top()++;
-						_it_stack.top()++;
+						_idx_stack.back()++;
+						_it_stack.back()++;
 					}
 				}
 
 				return true;
 			}
 
-			ValueType get_type() {
+			ValueType get_type() const {
 				return state;
 			}
 
-			std::string get_data() {
+			std::string get_data() const {
 				return value;
 			}
 		};
 	public:
-
-		ClauParserTraverser(clau_parser::UserType* parsed_json) :
-			parsed_json(parsed_json)
-			, iterator(parsed_json)
+		ClauParserTraverser(const ClauParserTraverser&) = default;
+		ClauParserTraverser(ClauParserTraverser&&) = default;
+		ClauParserTraverser(clau_parser::UserType* ut) :
+			ut(ut)
+			, iterator(ut)
 		{
 			//
 		}
+		~ClauParserTraverser() = default;
 
 		ValueType next() {
 			{
+				no++;
 
 				ValueType before_type = iterator.get_type();
 
@@ -3497,20 +3504,30 @@ namespace clau_parser {
 
 		}
 
-		ValueType get_type() { return iterator.get_type(); }
+		bool is_end()const {
+			return get_type() == ValueType::end_of_document;
+		}
 
-		std::string get_string() {
+		ValueType get_type() const { return iterator.get_type(); }
+
+		std::string get_string() const  {
 			return iterator.get_data();
 		}
-		int64_t get_integer() {
+		int64_t get_integer() const {
 			return std::stoll(get_string());
 		}
-		double get_floating() {
+		double get_floating() const {
 			return std::stod(get_string());
 		}
+		size_t get_no() const {
+			return no;
+		}
 
-	private:
-		clau_parser::UserType* parsed_json;
+		ClauParserTraverser& operator=(const ClauParserTraverser&) = default;
+		ClauParserTraverser& operator=(ClauParserTraverser&&) = default;
+	public:
+		size_t 	no = 0;
+		clau_parser::UserType* ut;
 		Iterator iterator;
 	};
 
