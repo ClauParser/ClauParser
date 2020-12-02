@@ -1454,7 +1454,10 @@ namespace clau_parser {
 			while (!_stack.empty()) {
 				if (_stack.back().idx >= _stack.back().max) {
 					_stack.back().ut->userTypeList.clear();
-					delete _stack.back().ut;
+					
+					if (_stack.back().ut) {
+						delete _stack.back().ut;
+					}
 
 					_stack.pop_back();
 					if (_stack.empty()) {
@@ -1591,6 +1594,7 @@ namespace clau_parser {
 				idx = _GetIndex(ilist, 1, err, idx + 1);
 			}
 			_err = true;
+			std::cout << "chk";
 			return -1;
 		}
 		size_t  _GetUserTypeIndexFromIlistIndex(const std::vector<int>& ilist, const size_t  ilist_idx, bool& _err) {
@@ -1630,7 +1634,10 @@ namespace clau_parser {
 			for (size_t i = idx + 1; i < GetItemListSize(); ++i) {
 				itemList[i - 1] = std::move(itemList[i]);
 			}
-			itemList.resize(itemList.size() - 1);
+
+			if (!itemList.empty()) {
+				itemList.resize(itemList.size() - 1);
+			}
 			//  ilist left shift and resize - count itemType!
 			size_t count = 0;
 			for (size_t i = 0; i < ilist.size(); ++i) {
@@ -3350,17 +3357,77 @@ namespace clau_parser {
 			std::vector<int> _idx_stack; // ilist
 			int chk_name; // key or data?
 		public:
+
+			void with_key() {
+				chk_name = 0;
+				_idx_stack.back()--;
+				_it_stack.back()--;
+			}
+
+			bool is_now_ut() const {
+				return state == ValueType::container;
+			}
+
+			bool is_now_it() const {
+				return state == ValueType::value;
+			}
+
 		//	Iterator(Iterator&&) = default;
 			Iterator(const Iterator&) = default;
 
-			Iterator(clau_parser::UserType* ut) : ut(ut) {
-				_stack.push_back(ut);
-				_ut_stack.push_back(0);
-				_it_stack.push_back(0);
-				_idx_stack.push_back(0);
-				chk_name = 0;
+			Iterator(clau_parser::UserType* ut, bool opt = false) : ut(ut) {
+				if (!opt) { 
+					_stack.push_back(ut);
+					_ut_stack.push_back(0);
+					_it_stack.push_back(0);
+					_idx_stack.push_back(0);
+					chk_name = 0;
 
-				next();
+					next(); 
+				}
+				else {
+					chk_name = 0;
+
+					std::vector<UserType*> vec;
+					UserType* parent = nullptr;
+
+					vec.push_back(ut);
+
+					while (parent = ut->GetParent()) {
+						vec.push_back(parent);
+						ut = parent;
+					}
+                    
+					{
+						_stack.push_back(vec.back());
+						
+						while (!vec.empty()) {
+							int utCount = 0;
+							int itCount = 0;
+							for (size_t i=0; i < _stack.back()->GetIListSize(); ++i) {
+								if (_stack.back()->IsItemList(i)) {
+									itCount++;
+								}
+								else {
+									utCount++;
+
+									if (_stack.back()->GetUserTypeList(i) == _stack.back()) {
+										_ut_stack.push_back(utCount);
+										_it_stack.push_back(itCount);
+										_idx_stack.push_back(i);
+
+										_stack.push_back(_stack.back()->GetUserTypeList(i));
+										break;
+									}
+								}
+							}
+							
+							vec.pop_back();
+						}
+					}
+
+					next();
+				}
 			}
 
 			void up() {
@@ -3455,6 +3522,49 @@ namespace clau_parser {
 			std::string get_data() const {
 				return value;
 			}
+
+			Type* get_now() {
+				if (is_now_ut()) {
+					return (Type*)_stack.back()->GetUserTypeList(_ut_stack.back() - 1);
+				}
+				return (Type*)&_stack.back()->GetItemList(_it_stack.back() - 1);
+			}
+
+			const Type* get_now() const {
+				if (is_now_ut()) {
+					return (Type*)_stack.back()->GetUserTypeList(_ut_stack.back() - 1);
+				}
+				return (Type*)&_stack.back()->GetItemList(_it_stack.back() - 1);
+			}
+
+
+			UserType* get_parent() {
+				return _stack.back();
+			}
+			const UserType* get_parent() const {
+				return _stack.back();
+			}
+
+			size_t get_it_idx() const {
+				if (_stack.back()->GetItemListSize() == 0) {
+					return -1;
+				}
+				return _it_stack.back();
+			}
+
+			size_t get_ut_idx() const {
+				if (_stack.back()->GetUserTypeListSize() == 0) {
+					return -1;
+				}
+				return _ut_stack.back();
+			}
+
+			size_t get_i_idx() const {
+				if (_stack.back()->GetIListSize() == 0) {
+					return -1;
+				}
+				return _idx_stack.back();
+			}
 		};
 	public:
 		ClauParserTraverser(const ClauParserTraverser&) = default;
@@ -3508,6 +3618,8 @@ namespace clau_parser {
 			return get_type() == ValueType::end_of_document;
 		}
 
+		void with_key() { iterator.with_key(); no--; no--; }
+
 		ValueType get_type() const { return iterator.get_type(); }
 
 		std::string get_string() const  {
@@ -3522,6 +3634,38 @@ namespace clau_parser {
 		size_t get_no() const {
 			return no;
 		}
+		// ut - UserType, it - ItemType.
+		bool is_now_ut() const {
+			return iterator.is_now_ut();
+		}
+		bool is_now_it() const {
+			return iterator.is_now_it(); 
+		}
+		Type* get_now() {
+			return iterator.get_now();
+		}
+		const Type* get_now() const {
+			return iterator.get_now();
+		}
+
+		UserType* get_parent() {
+			return iterator.get_parent();
+		}
+		const UserType* get_parent() const {
+			return iterator.get_parent();
+		}
+
+		size_t get_it_idx() const {
+			return iterator.get_it_idx();
+		}
+
+		size_t get_ut_idx() const {
+			return iterator.get_ut_idx();
+		}
+		size_t get_i_idx() const {
+			return iterator.get_i_idx();
+		}
+
 
 		ClauParserTraverser& operator=(const ClauParserTraverser&) = default;
 		ClauParserTraverser& operator=(ClauParserTraverser&&) = default;
@@ -3573,8 +3717,23 @@ namespace clau_parser {
 		}
 
 	public:
+		void Clear() {
+			if (ut) {
+				delete ut;
+			}
+			ut = new UserType();
+			_stack.push_back(ut);
+		}
+		Maker& SetLastItem(const std::string& value) {
+			_stack.back()->GetItemList(_stack.back()->GetItemListSize() - 1).Set(0, value);
+			return *this;
+		}
 		Maker& NewItem(const std::string& name, const std::string& value) {
 			_stack.back()->AddItem(name, value);
+			return *this;
+		}
+		Maker& NewItem(ItemType<std::string>&& item) {
+			_stack.back()->AddItemType(item);
 			return *this;
 		}
 		Maker& NewGroup(const std::string& name) {
@@ -3582,6 +3741,7 @@ namespace clau_parser {
 			_stack.push_back(_stack.back()->GetUserTypeList(_stack.back()->GetUserTypeListSize() - 1));
 			return *this;
 		}
+
 		Maker& NewGroup(Maker& other) {
 			if (this->ut == other.ut) {
 				throw "New Group this == other";
@@ -3592,12 +3752,21 @@ namespace clau_parser {
 			return *this;
 		}
 		Maker& EndGroup() {
+			if (_stack.empty()) {
+				UserType* new_ut = new UserType("#");
+
+				new_ut->LinkUserType(ut);
+				_stack.push_back(new_ut);
+				ut = new_ut;
+
+				return *this;
+			}
 			_stack.pop_back();
 			return *this;
 		}
 		UserType* Get() {
 			UserType* result = ut;
-			this->ut = nullptr;
+			ut = nullptr;
 			return result;
 		}
 	};
