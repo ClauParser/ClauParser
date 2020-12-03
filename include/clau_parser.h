@@ -77,6 +77,25 @@ namespace clau_parser {
 			fseek(file, static_cast<long>(stBom.bom_size * sizeof(char)), SEEK_SET);
 			return type;
 		}
+		
+		static BomType ReadBom(const char* contents, size_t length) {
+			char btBom[5] = { 0, };
+			size_t readSize = std::min((size_t)5, length);
+
+
+			if (0 == readSize) {
+				return BomType::ANSI;
+			}
+
+			BomInfo stBom = { 0, };
+			BomType type = ReadBom(btBom, readSize, stBom);
+
+			if (type == BomType::ANSI) { // ansi
+				return BomType::ANSI;
+			}
+
+			return type;
+		}
 
 		static BomType ReadBom(const char* contents, size_t length, BomInfo& outInfo) {
 			char btBom[5] = { 0, };
@@ -194,7 +213,6 @@ namespace clau_parser {
 			size_t token_arr_size = 0;
 
 			{
-				int state = 0;
 
 				int64_t token_first = 0;
 				int64_t token_last = -1;
@@ -537,7 +555,6 @@ namespace clau_parser {
 			size_t token_arr_size = 0;
 
 			{
-				int state = 0;
 
 				int64_t token_first = 0;
 				int64_t token_last = -1;
@@ -734,10 +751,10 @@ namespace clau_parser {
 			size_t real_token_arr_count = 0;
 
 			int64_t* tokens = new int64_t[length + 1];
-			int64_t token_count = 0;
+	
 
 			std::vector<size_t> token_arr_size(thr_num);
-			auto a = std::chrono::steady_clock::now();
+		//	auto a = std::chrono::steady_clock::now();
 			for (int i = 0; i < thr_num; ++i) {
 				if (use_simd) {
 					thr[i] = std::thread(_ScanningWithSimd, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]));
@@ -750,7 +767,7 @@ namespace clau_parser {
 			for (int i = 0; i < thr_num; ++i) {
 				thr[i].join();
 			}
-			auto b = std::chrono::steady_clock::now();
+			//auto b = std::chrono::steady_clock::now();
 			int state = 0;
 			int64_t qouted_start;
 			int64_t slush_start;
@@ -763,7 +780,6 @@ namespace clau_parser {
 					//std::cout << tokens[i] << "\n";
 					//Utility::PrintToken(text, tokens[i]);
 					//
-					const int64_t len = Utility::GetLength(tokens[i]);
 					const char ch = text[Utility::GetIdx(tokens[i])];
 					const int64_t idx = Utility::GetIdx(tokens[i]);
 					const bool isToken2 = Utility::IsToken2(tokens[i]);
@@ -983,9 +999,6 @@ namespace clau_parser {
 				return { false, 0 };
 			}
 
-			int64_t* arr_count = nullptr; //
-			size_t arr_count_size = 0;
-
 			std::string temp;
 			char* buffer = nullptr;
 			size_t file_length;
@@ -1033,22 +1046,85 @@ namespace clau_parser {
 
 			return{ true, 1 };
 		}
+	
+		static std::pair<bool, int> Scan2(char* str, size_t len, int thr_num,
+			char*& _buffer, size_t* _buffer_len, int64_t*& _token_arr, size_t* _token_arr_len, bool use_simd)
+		{
+			if (str == nullptr) {
+				return { false, 0 };
+			}
+
+			std::string temp;
+			char* buffer = str;
+			size_t file_length;
+
+			{
+				size_t length = len;
+
+				Utility::BomType x = Utility::ReadBom(str, length);
+
+				//	clau_parser::Out << "length " << length << "\n";
+				if (x == Utility::BomType::UTF_8) {
+					length = length - 3;
+				}
+
+				file_length = length;
+
+				buffer[file_length] = '\0';
+
+				{
+					int64_t* token_arr;
+					size_t token_arr_size;
+
+					if (thr_num == 1) {
+						Scanning(buffer, file_length, token_arr, token_arr_size);
+					}
+					else {
+						ScanningNew(buffer, file_length, thr_num, token_arr, token_arr_size, use_simd);
+					}
+
+					_buffer = buffer;
+					_token_arr = token_arr;
+					*_token_arr_len = token_arr_size;
+					*_buffer_len = file_length;
+				}
+			}
+
+			return{ true, 1 };
+		}
 
 	private:
-		FILE* pInFile;
-		bool use_simd;
+		FILE* pInFile = nullptr;
+		bool use_simd = false;
+		std::string* str = nullptr;
 	public:
 		explicit InFileReserver(FILE* inFile, bool use_simd)
 		{
 			pInFile = inFile;
 			this->use_simd = use_simd;
 		}
+		explicit InFileReserver(std::string* str, bool use_simd)
+			: use_simd(use_simd), str(str)
+		{
+			//
+		}
 	public:
+
+		bool use_file() const {
+			return pInFile;
+		}
 		bool operator() (int thr_num, char*& buffer, size_t* buffer_len, int64_t*& token_arr, size_t* token_arr_len)
 		{
-			bool x = Scan(pInFile, thr_num, buffer, buffer_len, token_arr, token_arr_len, use_simd).second > 0;
+			if (pInFile) {
+				bool x = Scan(pInFile, thr_num, buffer, buffer_len, token_arr, token_arr_len, use_simd).second > 0;
 
-			return x;
+				return x;
+			}
+			else {
+				bool x = Scan2(const_cast<char*>(str->c_str()), str->size(), thr_num, buffer, buffer_len, token_arr, token_arr_len, use_simd).second > 0;
+
+				return x;
+			}
 		}
 	};
 
@@ -3034,13 +3110,13 @@ namespace clau_parser {
 
 			{
 
-				auto a = std::chrono::steady_clock::now();
+			//	auto a = std::chrono::steady_clock::now();
 
 				bool success = reserver(lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
 
 
-				auto b = std::chrono::steady_clock::now();
-				auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
+			//	auto b = std::chrono::steady_clock::now();
+			//	auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
 				//	std::cout << "scan " << dur.count() << "ms\n";
 
 					//	{
@@ -3068,9 +3144,6 @@ namespace clau_parser {
 
 			UserType* before_next = nullptr;
 			UserType _global;
-
-			bool first = true;
-			int64_t sum = 0;
 
 			{
 				std::set<int64_t> _pivots;
@@ -3126,7 +3199,7 @@ namespace clau_parser {
 					}
 
 
-					auto a = std::chrono::steady_clock::now();
+				//	auto a = std::chrono::steady_clock::now();
 
 					// wait
 					for (size_t i = 0; i < thr.size(); ++i) {
@@ -3134,8 +3207,8 @@ namespace clau_parser {
 					}
 
 
-					auto b = std::chrono::steady_clock::now();
-					auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
+				//	auto b = std::chrono::steady_clock::now();
+				//	auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
 					//std::cout << "parse1 " << dur.count() << "ms\n";
 
 					for (size_t i = 0; i < err.size(); ++i) {
@@ -3189,7 +3262,9 @@ namespace clau_parser {
 						}
 					}
 					catch (...) {
-						delete[] buffer;
+						if (reserver.use_file()) {
+							delete[] buffer;
+						}
 						delete[] token_arr;
 						buffer = nullptr;
 						throw "in Merge, error";
@@ -3197,13 +3272,15 @@ namespace clau_parser {
 
 					before_next = next.back();
 
-					auto c = std::chrono::steady_clock::now();
-					auto dur2 = std::chrono::duration_cast<std::chrono::nanoseconds>(c - b);
+					//auto c = std::chrono::steady_clock::now();
+					//auto dur2 = std::chrono::duration_cast<std::chrono::nanoseconds>(c - b);
 					//std::cout << "parse2 " << dur2.count() << "ns\n";
 				}
 			}
 
-			delete[] buffer;
+			if (reserver.use_file()) {
+				delete[] buffer;
+			}
 			delete[] token_arr;
 
 			global = std::move(_global);
@@ -3234,7 +3311,6 @@ namespace clau_parser {
 				parse_thr_num = 1;
 			}
 
-			bool success = true;
 			FILE* inFile;
 
 #ifdef _WIN32 
@@ -3253,7 +3329,7 @@ namespace clau_parser {
 			try {
 
 				InFileReserver ifReserver(inFile, use_simd);
-				char* buffer = nullptr;
+
 
 				//	strVec.reserve(ifReserver.Num);
 				// cf) empty file..
@@ -3275,8 +3351,47 @@ namespace clau_parser {
 
 			return true;
 		}
+		static bool LoadDataFromString(std::string* str, UserType& global, int lex_thr_num = 1, int parse_thr_num = 1, bool use_simd = false) /// global should be empty
+		{
+			if (lex_thr_num <= 0) {
+				lex_thr_num = std::thread::hardware_concurrency();
+			}
+			if (lex_thr_num <= 0) {
+				lex_thr_num = 1;
+			}
 
-		static bool Loadclau_parserDB(UserType& global, const std::string& fileName, const int thr_num) {
+			if (parse_thr_num <= 0) {
+				parse_thr_num = std::thread::hardware_concurrency();
+			}
+			if (parse_thr_num <= 0) {
+				parse_thr_num = 1;
+			}
+
+			UserType globalTemp;
+
+			try {
+
+				InFileReserver ifReserver(str, use_simd);
+
+
+				//	strVec.reserve(ifReserver.Num);
+				// cf) empty file..
+				if (false == _LoadData(ifReserver, globalTemp, lex_thr_num, parse_thr_num))
+				{
+					return false; // return true?
+				}
+			}
+			catch (const char* err) { std::cout << err << "\n";  return false; }
+			catch (const std::string& e) { std::cout << e << "\n";  return false; }
+			catch (const std::exception& e) { std::cout << e.what() << "\n"; return false; }
+			catch (...) { std::cout << "not expected error" << "\n";  return false; }
+
+
+			global = std::move(globalTemp);
+
+			return true;
+		}
+		static bool Load(UserType& global, const std::string& fileName, const int thr_num) {
 			UserType globalTemp = UserType("global");
 
 			// Scan + Parse 
@@ -3287,7 +3402,7 @@ namespace clau_parser {
 			return true;
 		}
 
-		static bool Saveclau_parserDB(const UserType& global, const std::string& fileName, const bool append = false) {
+		static bool Save(const UserType& global, const std::string& fileName, const bool append = false) {
 			std::ofstream outFile;
 			if (fileName.empty()) { return false; }
 			if (false == append) {
@@ -3309,7 +3424,7 @@ namespace clau_parser {
 			return true;
 		}
 
-		static bool Saveclau_parserDB2(const UserType& global, const std::string& fileName, const bool append = false) {
+		static bool Save2(const UserType& global, const std::string& fileName, const bool append = false) {
 			std::ofstream outFile;
 			if (fileName.empty()) { return false; }
 			if (false == append) {
@@ -3739,6 +3854,23 @@ namespace clau_parser {
 		Maker& NewGroup(const std::string& name) {
 			_stack.back()->AddUserTypeItem(UserType(name));
 			_stack.push_back(_stack.back()->GetUserTypeList(_stack.back()->GetUserTypeListSize() - 1));
+			return *this;
+		}
+
+		Maker& NewGroup(UserType* ut) {
+			UserType* parent = ut->GetParent();
+
+			if (parent) {
+				for (size_t i = 0; i < parent->GetUserTypeListSize(); ++i) {
+					if (parent->GetUserTypeList(i) == ut) {
+						parent->GetUserTypeList(i) = nullptr;
+						parent->RemoveUserTypeList(i);
+						break;
+					}
+				}
+			}
+
+			_stack.back()->LinkUserType(ut);
 			return *this;
 		}
 
