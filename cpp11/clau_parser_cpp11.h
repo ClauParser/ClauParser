@@ -3270,7 +3270,7 @@ namespace clau_parser11 {
 			return true;
 		}
 
-		static bool Saveclau_parser11DB(const UserType& global, const std::string& fileName, const bool append = false) {
+		static bool Save(const UserType& global, const std::string& fileName, const bool append = false) {
 			std::ofstream outFile;
 			if (fileName.empty()) { return false; }
 			if (false == append) {
@@ -3292,7 +3292,7 @@ namespace clau_parser11 {
 			return true;
 		}
 
-		static bool Saveclau_parser11DB2(const UserType& global, const std::string& fileName, const bool append = false) {
+		static bool Save2(const UserType& global, const std::string& fileName, const bool append = false) {
 			std::ofstream outFile;
 			if (fileName.empty()) { return false; }
 			if (false == append) {
