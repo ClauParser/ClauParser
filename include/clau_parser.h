@@ -3365,6 +3365,7 @@ namespace clau_parser {
 				//	auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
 					//	std::cout << "scan " << dur.count() << "ms\n";
 
+				// debug..
 						//	{
 						//		for (int64_t i = 0; i < token_arr_len; ++i) {
 						//			std::string(buffer + Utility::GetIdx(token_arr[i]), Utility::GetLength(token_arr[i]));
@@ -3400,7 +3401,7 @@ namespace clau_parser {
 			}
 		}
 
-
+		// for debug.
 		static void chk(UserType* x) {
 			std::cout << x->GetItemListCapacity() << " " << x->GetItemListSize() << "\n";
 			for (int i = 0; i < x->GetUserTypeListSize(); ++i) {
@@ -3597,76 +3598,6 @@ namespace clau_parser {
 		}
 	};
 
-	class Reader { // todo set key, set data.
-	private:
-		std::stack<UserType*> _stack;
-		UserType* global = nullptr;
-		long long idx = -1;
-	public:
-		Reader(UserType* ut) 
-		: global(ut) {
-			_stack.push(global);
-		}
-	public:
-		std::string GetKey() {
-			if (IsGroup()) {
-				bool err = false;
-				long long ut_idx = _stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
-				if (err) { return "#1"; }
-				return _stack.top()->GetUserTypeList(ut_idx)->GetName();
-			}
-			else {
-				bool err = false;
-				long long it_idx = _stack.top()->GetItemIndexFromIlistIndex(idx, err);
-				if (err) { return "#2"; }
-				return _stack.top()->GetUserTypeList(it_idx)->GetName();
-			}
-		}
-		std::string GetData() { 
-			if (IsGroup()) {
-				return "";
-			}
-			bool err = false;
-			long long ut_idx = _stack.top()->GetItemIndexFromIlistIndex(idx, err);
-
-			if (err) {
-				return "";
-			}
-			
-			auto x = _stack.top()->GetItemList(ut_idx);
-			
-			return x.Get();
-		}
-		bool IsGroup() {
-			return _stack.top()->IsUserTypeList(idx);
-		} // object_or_array
-		bool SetIndex(const long long idx) {
-			this->idx = idx;
-		}
-		bool Enter() {
-			bool err = false;
-			long long ut_idx = _stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
-			
-			if (err) {
-				return false;
-			}
-
-			_stack.push(_stack.top()->GetUserTypeList(ut_idx));
-
-			return true;
-		}
-		bool Quit() {
-			if (_stack.size() > 1) {
-				_stack.pop();
-				return true;
-			}
-			return false;
-		}
-		long long Length() {
-			return _stack.top()->GetIListSize();
-		}
-	};
-
 	class Maker {
 	private:
 		Maker(const Maker&) = delete;
@@ -3712,6 +3643,7 @@ namespace clau_parser {
 			return *this;
 		}
 
+		// notice..: remove?
 		Maker& NewGroup(UserType* ut) {
 			UserType* parent = ut->GetParent();
 
@@ -3755,6 +3687,139 @@ namespace clau_parser {
 			UserType* result = ut;
 			ut = nullptr;
 			return result;
+		}
+	};
+
+	class Reader { // Writer - set key, set data.
+	public: 
+		friend class Setter;
+		friend class Maker;
+	private:
+		std::stack<UserType*> _stack;
+		UserType* global = nullptr;
+		long long idx = -1;
+	public:
+		Reader(UserType* ut) 
+		: global(ut) {
+			_stack.push(global);
+		}
+
+	public:
+		std::string GetKey() const {
+			if (IsGroup()) {
+				bool err = false;
+				long long ut_idx = _stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
+				if (err) { return "#1"; }
+				return _stack.top()->GetUserTypeList(ut_idx)->GetName();
+			}
+			else {
+				bool err = false;
+				long long it_idx = _stack.top()->GetItemIndexFromIlistIndex(idx, err);
+				if (err) { return "#2"; }
+				return _stack.top()->GetUserTypeList(it_idx)->GetName();
+			}
+		}
+		std::string GetData() const { 
+			if (IsGroup()) {
+				return "";
+			}
+			bool err = false;
+			long long ut_idx = _stack.top()->GetItemIndexFromIlistIndex(idx, err);
+
+			if (err) {
+				return "";
+			}
+			
+			auto x = _stack.top()->GetItemList(ut_idx);
+			
+			return x.Get();
+		}
+		bool IsGroup() const  {
+			return _stack.top()->IsUserTypeList(idx);
+		} // object_or_array
+		bool SetIndex(const long long idx) {
+			this->idx = idx;
+		}
+		bool Enter() {
+			bool err = false;
+			long long ut_idx = _stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
+			
+			if (err) {
+				return false;
+			}
+
+			_stack.push(_stack.top()->GetUserTypeList(ut_idx));
+
+			return true;
+		}
+		bool Quit() {
+			if (_stack.size() > 1) {
+				_stack.pop();
+				return true;
+			}
+			return false;
+		}
+		long long Length() const  {
+			return _stack.top()->GetIListSize();
+		}
+
+	};
+
+	class Setter { // Writer todo set key, set data.
+	private:
+		Reader* reader; // 
+		long long idx = -2;
+	public:
+		Setter(Reader* reader)
+		:	reader(reader)
+		{
+			idx = reader->idx;
+		}
+	public:
+		std::string SetKey(const std::string& val) {
+			if (IsGroup()) {
+				bool err = false;
+				long long ut_idx = reader->_stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
+				if (err) { return "#1"; }
+				reader->_stack.top()->GetUserTypeList(ut_idx)->SetName(val);
+			}
+			else {
+				bool err = false;
+				long long it_idx = reader->_stack.top()->GetItemIndexFromIlistIndex(idx, err);
+				if (err) { return "#2"; }
+				reader->_stack.top()->GetUserTypeList(it_idx)->SetName(val);
+			}
+			return "";
+		}
+		std::string SetData(const std::string& val) {
+			if (IsGroup()) {
+				return "";
+			}
+			bool err = false;
+			long long ut_idx = reader->_stack.top()->GetItemIndexFromIlistIndex(idx, err);
+
+			if (err) {
+				return "#3";
+			}
+
+			auto x = reader->_stack.top()->GetItemList(ut_idx);
+
+			x.Set(0, val);
+
+			return "";
+		}
+
+		bool IsGroup() const {
+			return reader->_stack.top()->IsUserTypeList(idx);
+		} 
+		
+		// object_or_array
+		bool SetIndex(const long long idx) {
+			this->idx = idx;
+		}
+
+		long long Length() const {
+			return reader->_stack.top()->GetIListSize();
 		}
 	};
 
