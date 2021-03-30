@@ -8,7 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include <queue>
+
 #include <stack>
 #include <string>
 #include <cstring>
@@ -21,6 +21,8 @@
 #ifdef USE_SIMD
 #include <intrin.h> // windows, todo : linux - x86intrin
 #endif
+
+using namespace std::literals;
 
 namespace clau_parser {
 
@@ -154,14 +156,22 @@ namespace clau_parser {
 
 		static inline int Equal(const int64_t x, const int64_t y)
 		{
-			if (x == y) {
-				return 0;
-			}
-			return -1;
+			return x == y ? 0 : -1;
 		}
 
 	public:
 
+		static int64_t Get(int64_t position, char ch) {
+			int64_t length = 1;
+
+			int64_t x = (position << 32) + (length << 3)+ 0;
+
+			x += 2 * (LoadDataOption::Left == ch ? 1 : 0);
+			x += 4 * (LoadDataOption::Right == ch ? 1 : 0);
+			x += 6 * (LoadDataOption::Assignment == ch ? 1 : 0);
+
+			return x;
+		}
 		// todo - rename.
 		static int64_t Get(int64_t position, int64_t length, char ch) {
 			int64_t x = (position << 32) + (length << 3) + 0;
@@ -170,6 +180,11 @@ namespace clau_parser {
 				return x;
 			}
 
+			x += 2 * (LoadDataOption::Left == ch ? 1 : 0);
+			x += 4 * (LoadDataOption::Right == ch ? 1 : 0);
+			x += 6 * (LoadDataOption::Assignment == ch ? 1 : 0);
+
+			/*
 			if (LoadDataOption::Left == ch) {
 				x += 2; // 010
 			}
@@ -179,10 +194,13 @@ namespace clau_parser {
 			else if (LoadDataOption::Assignment == ch) {
 				x += 6;
 			}
-
+			*/
 			return x;
 		}
-
+		static int64_t Get2(int64_t position, int64_t length) {
+			int64_t x = (position << 32) + (length << 3) + 0;
+			return x;
+		}
 		static int64_t GetIdx(int64_t x) {
 			return (x >> 32) & 0x00000000FFFFFFFF;
 		}
@@ -377,7 +395,7 @@ namespace clau_parser {
 											token_arr[num + token_arr_count] = 0;
 										}
 										const char ch = text[i];
-										token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
+										token_arr[num + token_arr_count] += Utility::Get(i + num, ch);
 										token_arr_count++;
 									}
 								}
@@ -416,14 +434,14 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, ch);
 							token_arr_count++;
 						}
 						break;
 					case '\\':
 					{//
 						token_arr[num + token_arr_count] = 1;
-						token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
+						token_arr[num + token_arr_count] += Utility::Get(i + num, ch);
 						token_arr_count++;
 					}
 					break;
@@ -438,7 +456,7 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, ch);
 							token_arr_count++;
 						}
 						break;
@@ -453,7 +471,7 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, ch);
 							token_arr_count++;
 						}
 						break;
@@ -468,7 +486,7 @@ namespace clau_parser {
 
 						{//
 							token_arr[num + token_arr_count] = 1;
-							token_arr[num + token_arr_count] += Utility::Get(i + num, 1, ch);
+							token_arr[num + token_arr_count] += Utility::Get(i + num, ch);
 							token_arr_count++;
 						}
 
@@ -562,7 +580,6 @@ namespace clau_parser {
 				size_t token_arr_count = 0;
 
 				for (int64_t i = 0; i < length; ++i) {
-
 					const char ch = text[i];
 
 					switch (ch) {
@@ -644,10 +661,11 @@ namespace clau_parser {
 					case '\v':
 					case '\f':
 						token_last = i - 1;
-						if (token_last - token_first + 1 > 0) {
+						
+						//if (token_last - token_first + 1 > 0) {
 							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
-							token_arr_count++;
-						}
+							token_arr_count += token_last-token_first + 1 > 0 ? 1 : 0;
+						//}
 						token_first = i + 1;
 						token_last = i + 1;
 
@@ -754,7 +772,7 @@ namespace clau_parser {
 	
 
 			std::vector<size_t> token_arr_size(thr_num);
-		//	auto a = std::chrono::steady_clock::now();
+			auto a = std::chrono::steady_clock::now();
 			for (int i = 0; i < thr_num; ++i) {
 				if (use_simd) {
 					thr[i] = std::thread(_ScanningWithSimd, text + start[i], start[i], last[i] - start[i], std::ref(tokens), std::ref(token_arr_size[i]));
@@ -767,29 +785,42 @@ namespace clau_parser {
 			for (int i = 0; i < thr_num; ++i) {
 				thr[i].join();
 			}
-			//auto b = std::chrono::steady_clock::now();
+			auto b = std::chrono::steady_clock::now();
 			int state = 0;
-			int64_t qouted_start;
-			int64_t slush_start;
+			int new_state = state;
+
+			int64_t qouted_start = -4;
+			int64_t slush_start = -5;
 
 			for (size_t t = 0; t < thr_num; ++t) {
 				for (size_t j = 0; j < token_arr_size[t]; ++j) {
-
 					const int64_t i = start[t] + j;
 
 					//std::cout << tokens[i] << "\n";
 					//Utility::PrintToken(text, tokens[i]);
 					//
-					const char ch = text[Utility::GetIdx(tokens[i])];
-					const int64_t idx = Utility::GetIdx(tokens[i]);
+					
 					const bool isToken2 = Utility::IsToken2(tokens[i]);
 
-					if (isToken2) {
-						if (0 == state && '\"' == ch) {
+
+					if (!isToken2 && state == 0) {
+						tokens[real_token_arr_count] = tokens[i];
+						real_token_arr_count++;
+					}
+					else {
+						const char ch = text[Utility::GetIdx(tokens[i])];
+						const int64_t idx = Utility::GetIdx(tokens[i]);
+
+						//if (isToken2) {
+						new_state = (isToken2 && 0 == state && '\"' == ch) ? 1 : new_state;
+						qouted_start = (isToken2 && 0 == state && '\"' == ch) ? i : qouted_start;
+
+						/*if (0 == state && '\"' == ch) {
 							state = 1;
 							qouted_start = i;
 						}
-						else if (0 == state && LoadDataOption::LineComment == ch) {
+						else
+						if (0 == state && LoadDataOption::LineComment == ch) {
 							state = 2;
 						}
 						else if (1 == state && '\\' == ch) {
@@ -821,23 +852,47 @@ namespace clau_parser {
 						}
 						else if (2 == state && ('\n' == ch || '\0' == ch)) {
 							state = 0;
-						}
-					}
-					else if (0 == state) { // 
+						}}
+					else if (0 == state) { //
 						tokens[real_token_arr_count] = tokens[i];
 
 						//	Utility::PrintToken(text, tokens[real_token_arr_count]);
 
 						real_token_arr_count++;
 					}
+						*/
+						new_state = (isToken2 && 0 == state && LoadDataOption::LineComment == ch) ? 2 : new_state;
+
+						new_state = (isToken2 && 1 == state && '\\' == ch) ? 3 : new_state;
+
+						slush_start = (isToken2 && 1 == state && '\\' == ch) ? idx : slush_start;
+
+						new_state = (isToken2 && 1 == state && '\"' == ch) ? 0 : new_state;
+						{
+							int64_t idx = (isToken2 && 1 == state && '\"' == ch) ? Utility::GetIdx(tokens[qouted_start]) : -1;
+							int64_t len = (isToken2 && 1 == state && '\"' == ch) ? Utility::GetLength(tokens[qouted_start]) : -1;
+							len = (isToken2 && 1 == state && '\"' == ch) ? Utility::GetIdx(tokens[i]) - idx + 1 : -1;
+
+							if (isToken2 && 1 == state && '\"' == ch) {
+								tokens[real_token_arr_count] = Utility::Get2(idx, len);
+								real_token_arr_count++;
+							}
+						}
+						j = (isToken2 && 3 == state && idx != slush_start + 1) ? j - 1 : j;
+
+						new_state = (isToken2 && 3 == state) ? 1 : new_state;
+
+						new_state = (isToken2 && 2 == state && ('\n' == ch || '\0' == ch)) ? 0 : new_state;
+						state = new_state;
+					}
 				}
 			}
-			//auto c = std::chrono::steady_clock::now();
-			//auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
-			//auto dur2 = std::chrono::duration_cast<std::chrono::milliseconds>(c - b);
+			auto c = std::chrono::steady_clock::now();
+			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
+			auto dur2 = std::chrono::duration_cast<std::chrono::milliseconds>(c - b);
 
-			//std::cout << dur.count() << "ms\n";
-			//std::cout << dur2.count() << "ms\n";
+			std::cout << dur.count() << "ms\n";
+			std::cout << dur2.count() << "ms\n";
 
 			{
 				if (0 != state) {
@@ -1880,7 +1935,7 @@ namespace clau_parser {
 			useSortedUserTypeList = false;
 		}
 		//			
-		void RemoveList(const size_t idx) // ilist_idx!
+		void RemoveList(const size_t idx, bool remove_ut = true) // ilist_idx!
 		{
 			// chk whether item or usertype.
 			// find item_idx or usertype_idx.
@@ -1901,7 +1956,7 @@ namespace clau_parser {
 					if (ilist[i] == 2) { usertype_idx++; }
 				}
 
-				RemoveUserTypeList(usertype_idx - 1);
+				RemoveUserTypeList(usertype_idx - 1, remove_ut);
 			}
 		}
 	public:
@@ -2737,16 +2792,17 @@ namespace clau_parser {
 			return str;
 		}
 	public:
-		static int Merge(UserType* next, UserType* ut, UserType** ut_next)
+		static int Merge(UserType* next, UserType* ut, UserType** ut_next, UserType** out = nullptr)
 		{
 			//check!!
 			while (ut->GetIListSize() >= 1 && ut->GetUserTypeListSize() >= 1
-				&& (ut->GetUserTypeList(0)->GetName() == "#"))
+				&& (ut->GetUserTypeList(0)->GetName() == "#"sv))
 			{
 				ut = ut->GetUserTypeList(0);
 			}
 
 			bool chk_ut_next = false;
+			UserType* temp = nullptr;
 
 			while (true) {
 				int itCount = 0;
@@ -2758,6 +2814,7 @@ namespace clau_parser {
 
 				if (ut_next && _ut == *ut_next) {
 					*ut_next = _next;
+					temp = _next;
 					chk_ut_next = true;
 				}
 
@@ -2765,7 +2822,7 @@ namespace clau_parser {
 
 				for (size_t i = 0; i < _ut->GetIListSize(); ++i) {
 					if (_ut->IsUserTypeList(i)) {
-						if (_ut->GetUserTypeList(utCount)->GetName() == "#") {
+						if (_ut->GetUserTypeList(utCount)->GetName() == "#"sv) {
 							_ut->GetUserTypeList(utCount)->SetName("");
 						}
 						else {
@@ -2784,8 +2841,9 @@ namespace clau_parser {
 				_ut->Remove();
 
 				ut = ut->GetParent();
+				
 				next = next->GetParent();
-
+				
 
 				if (next && ut) {
 					//
@@ -3110,14 +3168,14 @@ namespace clau_parser {
 
 			{
 
-			//	auto a = std::chrono::steady_clock::now();
+				auto a = std::chrono::steady_clock::now();
 
 				bool success = reserver(lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
 
 
-			//	auto b = std::chrono::steady_clock::now();
-			//	auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
-				//	std::cout << "scan " << dur.count() << "ms\n";
+				auto b = std::chrono::steady_clock::now();
+				auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
+					std::cout << "scan " << dur.count() << "ms\n";
 
 					//	{
 					//		for (int64_t i = 0; i < token_arr_len; ++i) {
@@ -3288,6 +3346,61 @@ namespace clau_parser {
 			return true;
 		}
 
+		static bool _LoadData2(InFileReserver& reserver, UserType*& global, UserType*& _next, const int lex_thr_num, const int parse_num) // first, strVec.empty() must be true!!
+		{
+			const int pivot_num = parse_num - 1;
+			char* buffer = nullptr;
+			int64_t* token_arr = nullptr;
+			size_t buffer_total_len;
+			size_t token_arr_len = 0;
+
+			{
+
+				//	auto a = std::chrono::steady_clock::now();
+
+				bool success = reserver(lex_thr_num, buffer, &buffer_total_len, token_arr, &token_arr_len);
+
+
+				//	auto b = std::chrono::steady_clock::now();
+				//	auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
+					//	std::cout << "scan " << dur.count() << "ms\n";
+
+						//	{
+						//		for (int64_t i = 0; i < token_arr_len; ++i) {
+						//			std::string(buffer + Utility::GetIdx(token_arr[i]), Utility::GetLength(token_arr[i]));
+					//				if (0 == Utility::GetIdx(token_arr[i])) {
+						//				std::cout << "chk";
+						//			}
+						//		}
+						//	}
+
+				if (!success) {
+					return false;
+				}
+				if (token_arr_len <= 0) {
+					if (token_arr) {
+						delete[] token_arr;
+					}
+					return true;
+				}
+			}
+
+
+			{
+				UserType* ut = new UserType();
+				UserType* next = nullptr;
+				int err = 0;
+
+				__LoadData(buffer, token_arr, token_arr_len, ut, 0, 0, &next, &err);
+
+				global = ut;
+				_next = next;
+
+				return true;
+			}
+		}
+
+
 		static void chk(UserType* x) {
 			std::cout << x->GetItemListCapacity() << " " << x->GetItemListSize() << "\n";
 			for (int i = 0; i < x->GetUserTypeListSize(); ++i) {
@@ -3391,6 +3504,43 @@ namespace clau_parser {
 
 			return true;
 		}
+
+		static bool LoadDataFromString2(std::string* str, UserType*& global, UserType*& next, int lex_thr_num = 1, int parse_thr_num = 1, bool use_simd = false) /// global should be empty
+		{
+			if (lex_thr_num <= 0) {
+				lex_thr_num = std::thread::hardware_concurrency();
+			}
+			if (lex_thr_num <= 0) {
+				lex_thr_num = 1;
+			}
+
+			if (parse_thr_num <= 0) {
+				parse_thr_num = std::thread::hardware_concurrency();
+			}
+			if (parse_thr_num <= 0) {
+				parse_thr_num = 1;
+			}
+
+			try {
+
+				InFileReserver ifReserver(str, use_simd);
+
+
+				//	strVec.reserve(ifReserver.Num);
+				// cf) empty file..
+				if (false == _LoadData2(ifReserver, global, next, lex_thr_num, parse_thr_num))
+				{
+					return false; // return true?
+				}
+			}
+			catch (const char* err) { std::cout << err << "\n";  return false; }
+			catch (const std::string& e) { std::cout << e << "\n";  return false; }
+			catch (const std::exception& e) { std::cout << e.what() << "\n"; return false; }
+			catch (...) { std::cout << "not expected error" << "\n";  return false; }
+
+			return true;
+		}
+
 		static bool Load(UserType& global, const std::string& fileName, const int thr_num) {
 			UserType globalTemp = UserType("global");
 
@@ -3447,6 +3597,166 @@ namespace clau_parser {
 		}
 	};
 
+	class Reader { // todo set key, set data.
+	private:
+		std::stack<UserType*> _stack;
+		UserType* global = nullptr;
+		long long idx = -1;
+	public:
+		Reader(UserType* ut) 
+		: global(ut) {
+			_stack.push(global);
+		}
+	public:
+		std::string GetKey() {
+			if (IsGroup()) {
+				bool err = false;
+				long long ut_idx = _stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
+				if (err) { return "#1"; }
+				return _stack.top()->GetUserTypeList(ut_idx)->GetName();
+			}
+			else {
+				bool err = false;
+				long long it_idx = _stack.top()->GetItemIndexFromIlistIndex(idx, err);
+				if (err) { return "#2"; }
+				return _stack.top()->GetUserTypeList(it_idx)->GetName();
+			}
+		}
+		std::string GetData() { 
+			if (IsGroup()) {
+				return "";
+			}
+			bool err = false;
+			long long ut_idx = _stack.top()->GetItemIndexFromIlistIndex(idx, err);
+
+			if (err) {
+				return "";
+			}
+			
+			auto x = _stack.top()->GetItemList(ut_idx);
+			
+			return x.Get();
+		}
+		bool IsGroup() {
+			return _stack.top()->IsUserTypeList(idx);
+		} // object_or_array
+		bool SetIndex(const long long idx) {
+			this->idx = idx;
+		}
+		bool Enter() {
+			bool err = false;
+			long long ut_idx = _stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
+			
+			if (err) {
+				return false;
+			}
+
+			_stack.push(_stack.top()->GetUserTypeList(ut_idx));
+
+			return true;
+		}
+		bool Quit() {
+			if (_stack.size() > 1) {
+				_stack.pop();
+				return true;
+			}
+			return false;
+		}
+		long long Length() {
+			return _stack.top()->GetIListSize();
+		}
+	};
+
+	class Maker {
+	private:
+		Maker(const Maker&) = delete;
+		Maker& operator=(const Maker&) = delete;
+	private:
+		UserType* ut = nullptr;
+		std::vector<UserType*> _stack;
+	public:
+		Maker(const std::string name = "") : ut(new UserType(name)) { _stack.push_back(ut); }
+		virtual ~Maker() {
+			if (ut) {
+				delete ut;
+			}
+		}
+
+	public:
+		void Clear() {
+			if (ut) {
+				delete ut;
+			}
+			ut = new UserType();
+			_stack.push_back(ut);
+		}
+
+		UserType* Top() { return _stack.back(); }
+		const UserType* Top() const { return _stack.back(); }
+
+		Maker& SetLastItem(const std::string& value) {
+			_stack.back()->GetItemList(_stack.back()->GetItemListSize() - 1).Set(0, value);
+			return *this;
+		}
+		Maker& NewItem(const std::string& name, const std::string& value) {
+			_stack.back()->AddItem(name, value);
+			return *this;
+		}
+		Maker& NewItem(ItemType<std::string>&& item) {
+			_stack.back()->AddItemType(item);
+			return *this;
+		}
+		Maker& NewGroup(const std::string& name) {
+			_stack.back()->AddUserTypeItem(UserType(name));
+			_stack.push_back(_stack.back()->GetUserTypeList(_stack.back()->GetUserTypeListSize() - 1));
+			return *this;
+		}
+
+		Maker& NewGroup(UserType* ut) {
+			UserType* parent = ut->GetParent();
+
+			if (parent) {
+				for (size_t i = 0; i < parent->GetUserTypeListSize(); ++i) {
+					if (parent->GetUserTypeList(i) == ut) {
+						parent->GetUserTypeList(i) = nullptr;
+						parent->RemoveUserTypeList(i);
+						break;
+					}
+				}
+			}
+
+			_stack.back()->LinkUserType(ut);
+			return *this;
+		}
+
+		Maker& NewGroup(Maker& other) {
+			if (this->ut == other.ut) {
+				throw "New Group this == other";
+			}
+
+			_stack.back()->LinkUserType(other.ut);
+			other.ut = nullptr;
+			return *this;
+		}
+		Maker& EndGroup() {
+			if (_stack.empty()) {
+				UserType* new_ut = new UserType("#");
+
+				new_ut->LinkUserType(ut);
+				_stack.push_back(new_ut);
+				ut = new_ut;
+
+				return *this;
+			}
+			_stack.pop_back();
+			return *this;
+		}
+		UserType* Get() {
+			UserType* result = ut;
+			ut = nullptr;
+			return result;
+		}
+	};
 
 
 	enum class ValueType {
@@ -3457,10 +3767,12 @@ namespace clau_parser {
 		value
 	};
 
+	// key, data, container, end of container, end of document.
+
 	class ClauParserTraverser {
 
 		class Iterator {
-		private:
+		public:
 			bool first = true;
 
 			ValueType state;
@@ -3473,7 +3785,7 @@ namespace clau_parser {
 			int chk_name; // key or data?
 		public:
 
-			void with_key() {
+			void with_key() { // value -> key?
 				chk_name = 0;
 				_idx_stack.back()--;
 				_it_stack.back()--;
@@ -3496,6 +3808,7 @@ namespace clau_parser {
 					_ut_stack.push_back(0);
 					_it_stack.push_back(0);
 					_idx_stack.push_back(0);
+
 					chk_name = 0;
 
 					next(); 
@@ -3680,6 +3993,10 @@ namespace clau_parser {
 				}
 				return _idx_stack.back();
 			}
+			
+			void enter() {
+				down();
+			}
 		};
 	public:
 		ClauParserTraverser(const ClauParserTraverser&) = default;
@@ -3781,6 +4098,184 @@ namespace clau_parser {
 			return iterator.get_i_idx();
 		}
 
+		void enter() {
+			iterator.enter();
+		}
+
+		static std::pair<UserType*, UserType*> divide(ClauParserTraverser& split_pos) {
+
+			// must? split_pos : type is value?, {, } ? 
+
+			UserType* left = new UserType();
+			UserType* right = new UserType();
+
+			auto _stack = split_pos.iterator._stack;
+			auto idx_stack = split_pos.iterator._idx_stack;
+			auto ut_stack = split_pos.iterator._ut_stack;
+			auto it_stack = split_pos.iterator._it_stack;
+
+			// make left
+			{
+				auto temp = left;
+				auto next_temp = temp;
+				
+				// todo - idx_stack -> long long?
+				{
+					long long it_count = 0;
+					long long ut_count = 0;
+					for (long long i = 0; i < idx_stack[0] - 1; ++i) {
+						if (_stack[0]->IsItemList(i)) {
+							temp->AddItemType(std::move(_stack[0]->GetItemList(it_count)));
+							it_count++;
+						}
+						else {
+							temp->LinkUserType(_stack[0]->GetUserTypeList(ut_count));
+							_stack[0]->GetUserTypeList(ut_count) = nullptr;
+							ut_count++;
+						}
+					}
+
+					temp->AddUserTypeItem(UserType(_stack[0]->GetUserTypeList(ut_count)->GetName()));
+					temp = temp->GetUserTypeList(temp->GetUserTypeListSize() - 1);
+				}
+
+				//
+				for (long long i = 1; i < _stack.size() - 1; ++i) {
+					long long it_count = 0;
+					long long ut_count = 0;
+					for (long long j = 0; j < idx_stack[i]; ++i) {
+						if (_stack[0]->IsItemList(j)) {
+							temp->AddItemType(std::move(_stack[0]->GetItemList(it_count)));
+							it_count++;
+						}
+						else {
+							temp->LinkUserType(_stack[0]->GetUserTypeList(ut_count));
+							_stack[0]->GetUserTypeList(ut_count) = nullptr;
+							ut_count++;
+						}
+					}
+				}
+
+				{
+					long long it_count = 0;
+					long long ut_count = 0;
+					for (long long j = 0; j < idx_stack[_stack.size() - 1]; ++j) {
+						if (_stack[_stack.size() - 1]->IsItemList(j)) {
+							temp->AddItemType(std::move(_stack[_stack.size() - 1]->GetItemList(it_count)));
+							it_count++;
+						}
+						else {
+							temp->LinkUserType(_stack[_stack.size() - 1]->GetUserTypeList(ut_count));
+							_stack[_stack.size() - 1]->GetUserTypeList(ut_count) = nullptr;
+							ut_count++;
+						}
+					}
+				}
+			}
+
+			// make right
+			{
+				auto temp = right;
+				auto next_temp = temp;
+
+			}
+
+			return { left, right };
+		}
+
+		// todo - remove...
+		UserType* divide_left(UserType*& next) {
+			auto _stack = iterator._stack;
+			auto idx_stack = iterator._idx_stack;
+
+			UserType* result = new UserType();
+			UserType* temp = result;
+			next = result;
+			
+			{
+				int t = 0;
+
+				for (size_t i = 0; i < _stack.size(); ++i) {
+					int it_count = 0;
+					int ut_count = 0;
+
+					for (size_t j = 0; j < idx_stack[i] - 1; ++j) {
+						if (_stack[i]->IsItemList(j)) {
+							if (!_stack[i]->GetItemList(it_count).Get().empty()) {
+								temp->AddItemType(std::move(_stack[i]->GetItemList(it_count)));
+							}
+
+							it_count++;
+						}
+						else {
+							if (_stack[i]->GetUserTypeList(ut_count) != nullptr) {
+								if (_stack[i]->GetUserTypeList(ut_count)->GetName() == "#r"sv) {
+									auto x = _stack[i]->GetUserTypeList(ut_count);
+
+									int _it_count = 0;
+									int _ut_count = 0;
+
+									for (size_t k = 0; k < x->GetIListSize(); ++k) {
+										if (x->IsItemList(k)) {
+											temp->AddItemType(std::move(x->GetItemList(_it_count)));
+											_it_count++;
+										}
+										else {
+											temp->LinkUserType(x->GetUserTypeList(_ut_count));
+											x->GetUserTypeList(_ut_count) = nullptr;
+											_ut_count++;
+										}
+									}
+
+									_stack[i]->GetUserTypeList(ut_count) = nullptr;
+								}
+								else {
+									temp->LinkUserType(_stack[i]->GetUserTypeList(ut_count));
+									_stack[i]->GetUserTypeList(ut_count) = nullptr;
+								}
+							}
+
+							ut_count++;
+						}
+					}
+
+					if (i < _stack.size() - 1) {
+						{
+							auto x = _stack[i]->GetUserTypeList(ut_count)->GetName();
+							if (x != "#r") {
+								temp->AddUserTypeItem(UserType(_stack[i]->GetUserTypeList(ut_count)->GetName()));
+								_stack[i]->GetUserTypeList(ut_count)->SetName("#");
+								
+								temp = temp->GetUserTypeList(ut_count);
+							}
+						}
+						
+
+						t++;
+					}
+					else {
+						if (_stack[i]->IsItemList(idx_stack[i] - 1)) {
+							temp->AddItemType(std::move(_stack[i]->GetItemList(it_count)));
+						}
+						else{
+							auto x = _stack[i]->GetUserTypeList(ut_count)->GetName();
+
+							if (x != "#r") {
+								temp->AddUserTypeItem(UserType(_stack[i]->GetUserTypeList(ut_count)->GetName()));
+								_stack[i]->GetUserTypeList(ut_count)->SetName("#");
+							}
+							t++;
+						}
+					}
+
+					next = temp;
+				}
+			}
+
+
+			return result;
+		}
+
 
 		ClauParserTraverser& operator=(const ClauParserTraverser&) = default;
 		ClauParserTraverser& operator=(ClauParserTraverser&&) = default;
@@ -3789,6 +4284,7 @@ namespace clau_parser {
 		clau_parser::UserType* ut;
 		Iterator iterator;
 	};
+	
 
 	class TraverserUtility {
 	public:
@@ -3815,93 +4311,6 @@ namespace clau_parser {
 		}
 	};
 
-
-	class Maker {
-	private:
-		Maker(const Maker&) = delete;
-		Maker& operator=(const Maker&) = delete;
-	private:
-		UserType* ut = nullptr;
-		std::vector<UserType*> _stack;
-	public:
-		Maker(const std::string name = "") : ut(new UserType(name)) { _stack.push_back(ut); }
-		virtual ~Maker() {
-			if (ut) {
-				delete ut;
-			}
-		}
-
-	public:
-		void Clear() {
-			if (ut) {
-				delete ut;
-			}
-			ut = new UserType();
-			_stack.push_back(ut);
-		}
-		Maker& SetLastItem(const std::string& value) {
-			_stack.back()->GetItemList(_stack.back()->GetItemListSize() - 1).Set(0, value);
-			return *this;
-		}
-		Maker& NewItem(const std::string& name, const std::string& value) {
-			_stack.back()->AddItem(name, value);
-			return *this;
-		}
-		Maker& NewItem(ItemType<std::string>&& item) {
-			_stack.back()->AddItemType(item);
-			return *this;
-		}
-		Maker& NewGroup(const std::string& name) {
-			_stack.back()->AddUserTypeItem(UserType(name));
-			_stack.push_back(_stack.back()->GetUserTypeList(_stack.back()->GetUserTypeListSize() - 1));
-			return *this;
-		}
-
-		Maker& NewGroup(UserType* ut) {
-			UserType* parent = ut->GetParent();
-
-			if (parent) {
-				for (size_t i = 0; i < parent->GetUserTypeListSize(); ++i) {
-					if (parent->GetUserTypeList(i) == ut) {
-						parent->GetUserTypeList(i) = nullptr;
-						parent->RemoveUserTypeList(i);
-						break;
-					}
-				}
-			}
-
-			_stack.back()->LinkUserType(ut);
-			return *this;
-		}
-
-		Maker& NewGroup(Maker& other) {
-			if (this->ut == other.ut) {
-				throw "New Group this == other";
-			}
-
-			_stack.back()->LinkUserType(other.ut);
-			other.ut = nullptr;
-			return *this;
-		}
-		Maker& EndGroup() {
-			if (_stack.empty()) {
-				UserType* new_ut = new UserType("#");
-
-				new_ut->LinkUserType(ut);
-				_stack.push_back(new_ut);
-				ut = new_ut;
-
-				return *this;
-			}
-			_stack.pop_back();
-			return *this;
-		}
-		UserType* Get() {
-			UserType* result = ut;
-			ut = nullptr;
-			return result;
-		}
-	};
 }
 
 #endif
