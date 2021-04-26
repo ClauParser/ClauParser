@@ -2,8 +2,7 @@
 
 My Own "Parallel Parser" for "Paradox Game Data" (clausewitz engine or jomini engine)
 
-# Use [microsoft/mimalloc](https://github.com/microsoft/mimalloc), for Large(>=50MB?) file.
-
+# Use [microsoft/mimalloc](https://github.com/microsoft/mimalloc), for very? Large(>=50MB?) file.
 
 
 # 
