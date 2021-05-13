@@ -1,6 +1,3 @@
-﻿
-
-
 
 #ifndef CLAU_PARSER_H
 #define CLAU_PARSER_H
@@ -79,7 +76,7 @@ namespace clau_parser {
 			fseek(file, static_cast<long>(stBom.bom_size * sizeof(char)), SEEK_SET);
 			return type;
 		}
-		
+
 		static BomType ReadBom(const char* contents, size_t length) {
 			char btBom[5] = { 0, };
 			size_t readSize = std::min((size_t)5, length);
@@ -164,7 +161,7 @@ namespace clau_parser {
 		static int64_t Get(int64_t position, char ch) {
 			int64_t length = 1;
 
-			int64_t x = (position << 32) + (length << 3)+ 0;
+			int64_t x = (position << 32) + (length << 3) + 0;
 
 			x += 2 * (LoadDataOption::Left == ch ? 1 : 0);
 			x += 4 * (LoadDataOption::Right == ch ? 1 : 0);
@@ -215,8 +212,8 @@ namespace clau_parser {
 		}
 
 		static void PrintToken(const char* buffer, int64_t token) {
-			//std::cout << Utility::GetIdx(token) << " " << Utility::GetLength(token) << "\n";
-			//std::cout << std::string_view(buffer + Utility::GetIdx(token), Utility::GetLength(token));
+			////std::cout << Utility::GetIdx(token) << " " << Utility::GetLength(token) << "\n";
+			////std::cout << std::string_view(buffer + Utility::GetIdx(token), Utility::GetLength(token));
 		}
 	};
 
@@ -661,10 +658,10 @@ namespace clau_parser {
 					case '\v':
 					case '\f':
 						token_last = i - 1;
-						
+
 						//if (token_last - token_first + 1 > 0) {
-							token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
-							token_arr_count += token_last-token_first + 1 > 0 ? 1 : 0;
+						token_arr[num + token_arr_count] = Utility::Get(token_first + num, token_last - token_first + 1, text[token_first]);
+						token_arr_count += token_last - token_first + 1 > 0 ? 1 : 0;
 						//}
 						token_first = i + 1;
 						token_last = i + 1;
@@ -769,7 +766,7 @@ namespace clau_parser {
 			size_t real_token_arr_count = 0;
 
 			int64_t* tokens = new int64_t[length + 1];
-	
+
 
 			std::vector<size_t> token_arr_size(thr_num);
 			auto a = std::chrono::steady_clock::now();
@@ -796,10 +793,10 @@ namespace clau_parser {
 				for (size_t j = 0; j < token_arr_size[t]; ++j) {
 					const int64_t i = start[t] + j;
 
-					//std::cout << tokens[i] << "\n";
+					////std::cout << tokens[i] << "\n";
 					//Utility::PrintToken(text, tokens[i]);
 					//
-					
+
 					const bool isToken2 = Utility::IsToken2(tokens[i]);
 
 
@@ -891,12 +888,12 @@ namespace clau_parser {
 			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
 			auto dur2 = std::chrono::duration_cast<std::chrono::milliseconds>(c - b);
 
-			std::cout << dur.count() << "ms\n";
-			std::cout << dur2.count() << "ms\n";
+			//std::cout << dur.count() << "ms\n";
+			//std::cout << dur2.count() << "ms\n";
 
 			{
 				if (0 != state) {
-					std::cout << "[ERROR] state [" << state << "] is not zero \n";
+					//std::cout << "[ERROR] state [" << state << "] is not zero \n";
 				}
 			}
 
@@ -1036,7 +1033,7 @@ namespace clau_parser {
 				token_arr_size = token_arr_count;
 
 				if (0 != state) {
-					std::cout << "[" << state << "] state is not zero.\n";
+					//std::cout << "[" << state << "] state is not zero.\n";
 				}
 			}
 
@@ -1077,7 +1074,7 @@ namespace clau_parser {
 				// read data as a block:
 				fread(buffer, sizeof(char), file_length, inFile);
 				//int b = clock();
-				//std::cout << b - a << " " << file_length <<"\n";
+				////std::cout << b - a << " " << file_length <<"\n";
 
 				buffer[file_length] = '\0';
 
@@ -1101,7 +1098,7 @@ namespace clau_parser {
 
 			return{ true, 1 };
 		}
-	
+
 		static std::pair<bool, int> Scan2(char* str, size_t len, int thr_num,
 			char*& _buffer, size_t* _buffer_len, int64_t*& _token_arr, size_t* _token_arr_len, bool use_simd)
 		{
@@ -1585,7 +1582,7 @@ namespace clau_parser {
 			while (!_stack.empty()) {
 				if (_stack.back().idx >= _stack.back().max) {
 					_stack.back().ut->userTypeList.clear();
-					
+
 					if (_stack.back().ut) {
 						delete _stack.back().ut;
 					}
@@ -1714,18 +1711,22 @@ namespace clau_parser {
 		// test? - need more thinking!
 		size_t  _GetItemIndexFromIlistIndex(const std::vector<int>& ilist, const size_t  ilist_idx, bool& _err) {
 			if (ilist.size() == ilist_idx) { return ilist.size(); }
+			
 			bool err = false;
 			_err = false;
 			size_t idx = _GetIndex(ilist, 1, err, 0);
 			size_t item_idx = -1;
 
 			while (!err) {
+
 				item_idx++;
+				
 				if (ilist_idx == idx) { return item_idx; }
+				
 				idx = _GetIndex(ilist, 1, err, idx + 1);
 			}
 			_err = true;
-			std::cout << "chk";
+			//std::cout << "chk";
 			return -1;
 		}
 		size_t  _GetUserTypeIndexFromIlistIndex(const std::vector<int>& ilist, const size_t  ilist_idx, bool& _err) {
@@ -2194,7 +2195,7 @@ namespace clau_parser {
 			std::vector<int> temp;
 
 			if (name == "*") {
-				std::cout << userTypeList.size() << "|\n";
+				//std::cout << userTypeList.size() << "|\n";
 				for (size_t i = 0; i < userTypeList.size(); ++i) {
 					temp.push_back(i);
 				}
@@ -2245,7 +2246,7 @@ namespace clau_parser {
 					}
 				}
 				else {
-					//std::cout << "no found" << "\n";
+					////std::cout << "no found" << "\n";
 				}
 			}
 
@@ -2307,7 +2308,7 @@ namespace clau_parser {
 						}
 					}
 					else {
-						//std::cout << "no found" << "\n";
+						////std::cout << "no found" << "\n";
 					}
 				}
 			}
@@ -2340,6 +2341,8 @@ namespace clau_parser {
 			std::vector<UserType*> temp;
 
 			if (false == useSortedUserTypeList) {
+				sortedUserTypeList.clear();
+
 				// make sortedUserTypeList.
 				for (size_t i = 0; i < userTypeList.size(); ++i) {
 					sortedUserTypeList.emplace_back(userTypeList[i], i);
@@ -2380,7 +2383,7 @@ namespace clau_parser {
 					}
 				}
 				else {
-					//std::cout << "no found" << "\n";
+					////std::cout << "no found" << "\n";
 				}
 			}
 
@@ -2392,6 +2395,7 @@ namespace clau_parser {
 			std::vector<UserType*> temp;
 
 			if (false == useSortedUserTypeList) {
+				sortedUserTypeList.clear();
 				// make sortedUserTypeList.
 				for (size_t i = 0; i < userTypeList.size(); ++i) {
 					sortedUserTypeList.emplace_back(userTypeList[i], i);
@@ -2432,7 +2436,7 @@ namespace clau_parser {
 					}
 				}
 				else {
-					//std::cout << "no found" << "\n";
+					////std::cout << "no found" << "\n";
 				}
 			}
 
@@ -2495,7 +2499,7 @@ namespace clau_parser {
 						}
 					}
 					else {
-						//std::cout << "no found" << "\n";
+						////std::cout << "no found" << "\n";
 					}
 				}
 			}
@@ -2526,7 +2530,7 @@ namespace clau_parser {
 			const bool existUserType = ut->GetUserTypeListSize() > 0;
 
 			for (size_t i = 0; i < ut->ilist.size(); ++i) {
-				//std::cout << "ItemList" << endl;
+				////std::cout << "ItemList" << endl;
 				if (ut->ilist[i] == 1) {
 					for (size_t j = 0; j < ut->itemList[itemListCount].size(); j++) {
 						std::string temp;
@@ -2556,7 +2560,7 @@ namespace clau_parser {
 					itemListCount++;
 				}
 				else if (ut->ilist[i] == 2) {
-					// std::cout << "UserTypeList" << endl;
+					// //std::cout << "UserTypeList" << endl;
 					for (int k = 0; k < depth; ++k) {
 						stream << "\t";
 					}
@@ -2589,7 +2593,7 @@ namespace clau_parser {
 
 
 			for (size_t i = 0; i < ut->ilist.size(); ++i) {
-				//std::cout << "ItemList" << endl;
+				////std::cout << "ItemList" << endl;
 				if (ut->ilist[i] == 1) {
 					for (size_t j = 0; j < ut->itemList[itemListCount].size(); j++) {
 						//for (int k = 0; k < depth; ++k) {
@@ -2611,7 +2615,7 @@ namespace clau_parser {
 					itemListCount++;
 				}
 				else if (ut->ilist[i] == 2) {
-					// std::cout << "UserTypeList" << endl;
+					// //std::cout << "UserTypeList" << endl;
 					if (ut->userTypeList[userTypeListCount]->GetName() != "") {
 						stream << ut->userTypeList[userTypeListCount]->GetName() << " ";
 					}
@@ -2731,7 +2735,7 @@ namespace clau_parser {
 			size_t  userTypeListCount = 0;
 
 			for (size_t i = 0; i < ilist.size(); ++i) {
-				//std::cout << "ItemList" << endl;
+				////std::cout << "ItemList" << endl;
 				if (ilist[i] == 1) {
 					for (size_t j = 0; j < itemList[itemListCount].size(); j++) {
 						if (itemList[itemListCount].GetName() != "") {
@@ -2750,7 +2754,7 @@ namespace clau_parser {
 					itemListCount++;
 				}
 				else if (ilist[i] == 2) {
-					// std::cout << "UserTypeList" << endl;
+					// //std::cout << "UserTypeList" << endl;
 					if (userTypeList[userTypeListCount]->GetName() != "") {
 						temp.append(userTypeList[userTypeListCount]->GetName());
 						temp.append(" = ");
@@ -2787,7 +2791,7 @@ namespace clau_parser {
 			if (1 == len && (type == TYPE_LEFT || type == TYPE_RIGHT ||
 				type == TYPE_ASSIGN)) {
 				*err = -4;
-				std::cout << "err " << type << "\n";
+				//std::cout << "err " << type << "\n";
 			}
 			return str;
 		}
@@ -2841,9 +2845,9 @@ namespace clau_parser {
 				_ut->Remove();
 
 				ut = ut->GetParent();
-				
+
 				next = next->GetParent();
-				
+
 
 				if (next && ut) {
 					//
@@ -3175,16 +3179,16 @@ namespace clau_parser {
 
 				auto b = std::chrono::steady_clock::now();
 				auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
-					std::cout << "scan " << dur.count() << "ms\n";
+				//std::cout << "scan " << dur.count() << "ms\n";
 
-					//	{
-					//		for (int64_t i = 0; i < token_arr_len; ++i) {
-					//			std::string(buffer + Utility::GetIdx(token_arr[i]), Utility::GetLength(token_arr[i]));
-				//				if (0 == Utility::GetIdx(token_arr[i])) {
-					//				std::cout << "chk";
-					//			}
-					//		}
-					//	}
+				//	{
+				//		for (int64_t i = 0; i < token_arr_len; ++i) {
+				//			std::string(buffer + Utility::GetIdx(token_arr[i]), Utility::GetLength(token_arr[i]));
+			//				if (0 == Utility::GetIdx(token_arr[i])) {
+				//				//std::cout << "chk";
+				//			}
+				//		}
+				//	}
 
 				if (!success) {
 					return false;
@@ -3257,17 +3261,17 @@ namespace clau_parser {
 					}
 
 
-				//	auto a = std::chrono::steady_clock::now();
+					//	auto a = std::chrono::steady_clock::now();
 
-					// wait
+						// wait
 					for (size_t i = 0; i < thr.size(); ++i) {
 						thr[i].join();
 					}
 
 
-				//	auto b = std::chrono::steady_clock::now();
-				//	auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
-					//std::cout << "parse1 " << dur.count() << "ms\n";
+					//	auto b = std::chrono::steady_clock::now();
+					//	auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
+						////std::cout << "parse1 " << dur.count() << "ms\n";
 
 					for (size_t i = 0; i < err.size(); ++i) {
 						switch (err[i]) {
@@ -3275,16 +3279,16 @@ namespace clau_parser {
 							break;
 						case -1:
 						case -4:
-							std::cout << "Syntax Error\n";
+							//std::cout << "Syntax Error\n";
 							break;
 						case -2:
-							std::cout << "error final state is not last_state!\n";
+							//std::cout << "error final state is not last_state!\n";
 							break;
 						case -3:
-							std::cout << "error x > buffer + buffer_len:\n";
+							//std::cout << "error x > buffer + buffer_len:\n";
 							break;
 						default:
-							std::cout << "unknown parser error\n";
+							//std::cout << "unknown parser error\n";
 							break;
 						}
 					}
@@ -3292,17 +3296,17 @@ namespace clau_parser {
 					// Merge
 					try {
 						if (__global[0].GetUserTypeListSize() > 0 && __global[0].GetUserTypeList(0)->GetName() == "#") {
-							std::cout << "not valid file1\n";
+							//std::cout << "not valid file1\n";
 							throw 1;
 						}
 						if (next.back()->GetParent() != nullptr) {
-							std::cout << "not valid file2\n";
+							//std::cout << "not valid file2\n";
 							throw 2;
 						}
 
 						int err = Merge(&_global, &__global[0], &next[0]);
 						if (-1 == err || (pivots.size() == 0 && 1 == err)) {
-							std::cout << "not valid file3\n";
+							//std::cout << "not valid file3\n";
 							throw 3;
 						}
 
@@ -3310,11 +3314,11 @@ namespace clau_parser {
 							// linearly merge and error check...
 							int err = Merge(next[i - 1], &__global[i], &next[i]);
 							if (-1 == err) {
-								std::cout << "not valid file4\n";
+								//std::cout << "not valid file4\n";
 								throw 4;
 							}
 							else if (i == pivots.size() && 1 == err) {
-								std::cout << "not valid file5\n";
+								//std::cout << "not valid file5\n";
 								throw 5;
 							}
 						}
@@ -3332,7 +3336,7 @@ namespace clau_parser {
 
 					//auto c = std::chrono::steady_clock::now();
 					//auto dur2 = std::chrono::duration_cast<std::chrono::nanoseconds>(c - b);
-					//std::cout << "parse2 " << dur2.count() << "ns\n";
+					////std::cout << "parse2 " << dur2.count() << "ns\n";
 				}
 			}
 
@@ -3363,14 +3367,14 @@ namespace clau_parser {
 
 				//	auto b = std::chrono::steady_clock::now();
 				//	auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(b - a);
-					//	std::cout << "scan " << dur.count() << "ms\n";
+					//	//std::cout << "scan " << dur.count() << "ms\n";
 
 				// debug..
 						//	{
 						//		for (int64_t i = 0; i < token_arr_len; ++i) {
 						//			std::string(buffer + Utility::GetIdx(token_arr[i]), Utility::GetLength(token_arr[i]));
 					//				if (0 == Utility::GetIdx(token_arr[i])) {
-						//				std::cout << "chk";
+						//				//std::cout << "chk";
 						//			}
 						//		}
 						//	}
@@ -3403,7 +3407,7 @@ namespace clau_parser {
 
 		// for debug.
 		static void chk(UserType* x) {
-			std::cout << x->GetItemListCapacity() << " " << x->GetItemListSize() << "\n";
+			//std::cout << x->GetItemListCapacity() << " " << x->GetItemListSize() << "\n";
 			for (int i = 0; i < x->GetUserTypeListSize(); ++i) {
 				chk(x->GetUserTypeList(i));
 			}
@@ -3547,7 +3551,7 @@ namespace clau_parser {
 
 			// Scan + Parse 
 			if (false == LoadDataFromFile(fileName, globalTemp, thr_num, thr_num)) { return false; }
-			//std::cout << "LoadData End" << "\n";
+			////std::cout << "LoadData End" << "\n";
 
 			global = std::move(globalTemp);
 			return true;
@@ -3691,20 +3695,28 @@ namespace clau_parser {
 	};
 
 	class Reader { // Writer - set key, set data.
-	public: 
+	public:
 		friend class Setter;
 		friend class Maker;
 	private:
 		std::stack<UserType*> _stack;
 		UserType* global = nullptr;
-		long long idx = -1;
+		long long idx = 0;
 	public:
-		Reader(UserType* ut) 
-		: global(ut) {
-			_stack.push(global);
+		Reader(UserType* ut)
+			: global(ut) {
+			if (ut) {
+				_stack.push(global);
+			}
 		}
 
 	public:
+		UserType* GetUT() {
+			if (_stack.empty()) {
+				return nullptr;
+			}
+			return _stack.top();
+		}
 		std::string GetKey() const {
 			if (IsGroup()) {
 				bool err = false;
@@ -3716,10 +3728,13 @@ namespace clau_parser {
 				bool err = false;
 				long long it_idx = _stack.top()->GetItemIndexFromIlistIndex(idx, err);
 				if (err) { return "#2"; }
-				return _stack.top()->GetUserTypeList(it_idx)->GetName();
+				return _stack.top()->GetItemList(it_idx).GetName();
 			}
 		}
-		std::string GetData() const { 
+		long long GetIdx()const {
+			return idx;
+		}
+		std::string GetData() const {
 			if (IsGroup()) {
 				return "";
 			}
@@ -3729,21 +3744,22 @@ namespace clau_parser {
 			if (err) {
 				return "";
 			}
-			
+
 			auto x = _stack.top()->GetItemList(ut_idx);
-			
+
 			return x.Get();
 		}
-		bool IsGroup() const  {
+		bool IsGroup() const {
 			return _stack.top()->IsUserTypeList(idx);
 		} // object_or_array
 		bool SetIndex(const long long idx) {
 			this->idx = idx;
+			return true;
 		}
 		bool Enter() {
 			bool err = false;
 			long long ut_idx = _stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
-			
+
 			if (err) {
 				return false;
 			}
@@ -3759,35 +3775,21 @@ namespace clau_parser {
 			}
 			return false;
 		}
-		long long Length() const  {
+		long long Length() const {
 			return _stack.top()->GetIListSize();
 		}
-
-	};
-
-	class Setter { // Writer todo set key, set data.
-	private:
-		Reader* reader; // 
-		long long idx = -2;
-	public:
-		Setter(Reader* reader)
-		:	reader(reader)
-		{
-			idx = reader->idx;
-		}
-	public:
 		std::string SetKey(const std::string& val) {
 			if (IsGroup()) {
 				bool err = false;
-				long long ut_idx = reader->_stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
-				if (err) { return "#1"; }
-				reader->_stack.top()->GetUserTypeList(ut_idx)->SetName(val);
+				long long ut_idx = _stack.top()->GetUserTypeIndexFromIlistIndex(idx, err);
+				if (err) { return "#3"; }
+				_stack.top()->GetUserTypeList(ut_idx)->SetName(val);
 			}
 			else {
 				bool err = false;
-				long long it_idx = reader->_stack.top()->GetItemIndexFromIlistIndex(idx, err);
-				if (err) { return "#2"; }
-				reader->_stack.top()->GetUserTypeList(it_idx)->SetName(val);
+				long long it_idx = _stack.top()->GetItemIndexFromIlistIndex(idx, err);
+				if (err) { return "#4"; }
+				_stack.top()->GetItemList(it_idx).SetName(val);
 			}
 			return "";
 		}
@@ -3796,33 +3798,20 @@ namespace clau_parser {
 				return "";
 			}
 			bool err = false;
-			long long ut_idx = reader->_stack.top()->GetItemIndexFromIlistIndex(idx, err);
+			long long ut_idx = _stack.top()->GetItemIndexFromIlistIndex(idx, err);
 
 			if (err) {
-				return "#3";
+				return "#5";
 			}
 
-			auto x = reader->_stack.top()->GetItemList(ut_idx);
+			auto& x = _stack.top()->GetItemList(ut_idx);
 
 			x.Set(0, val);
 
 			return "";
 		}
 
-		bool IsGroup() const {
-			return reader->_stack.top()->IsUserTypeList(idx);
-		} 
-		
-		// object_or_array
-		bool SetIndex(const long long idx) {
-			this->idx = idx;
-		}
-
-		long long Length() const {
-			return reader->_stack.top()->GetIListSize();
-		}
 	};
-
 }
 
 #endif
